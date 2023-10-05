@@ -5,7 +5,6 @@
 #include "Read_file.h"
 
 
-
 int main()
 {
     struct About_text ab_text = {};
