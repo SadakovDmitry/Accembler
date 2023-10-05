@@ -151,6 +151,10 @@ enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int
     {
         return HLT;
     }
+    if (strncmp(ab_str[i].str, "pop", 3) == 0)
+    {
+        return POP;
+    }
     else
     {
         printf("ERROR comand is not finded\n");
@@ -172,14 +176,28 @@ void Make_file(struct About_text* ab_text, struct About_str* ab_str)
     for (int i = 0; i < (ab_text ->rows); i++)
     {
         enum Comands num_of_comand = Convert_to_numbers(ab_str, ab_str[i].str, i);
+        char simbol = 'a';
 
-        if (num_of_comand == 1)
+        switch (num_of_comand)
         {
-            fprintf(output_file, "%d", num_of_comand);
-            fprintf(output_file, "%s",  ab_str[i].str + 4);
-        }
-        else
-        {
+        case 1:
+            fprintf(output_file, "%d ", num_of_comand);
+
+            if (strncmp(ab_str[i].str + 5, "rax", 3) == 0 || strncmp(ab_str[i].str + 5, "rbx", 3) == 0 || strncmp(ab_str[i].str + 5, "rcx", 3) == 0 || strncmp(ab_str[i].str + 5, "rdx", 3) == 0)
+            {
+                fprintf(output_file, "2 %d\n", (int)(*(ab_str[i].str + 6)) - (int)simbol);
+            }
+            else
+            {
+                fprintf(output_file, "1 %s", ab_str[i].str + 5);
+            }
+
+            break;
+        case 11:
+            fprintf(output_file, "%d ", num_of_comand);
+            fprintf(output_file, "%d\n",  (int)(*(ab_str[i].str + 5)) - (int)simbol);
+            break;
+        default:
             fprintf(output_file, "%d\n", num_of_comand);
         }
 
@@ -200,7 +218,7 @@ void Convert_to_cheak_file(struct About_text* ab_text, struct About_str* ab_str)
 
     assert(output_file != NULL);
 
-    for (int i = 0; i < (ab_text ->rows); i++)
+    for (int i = 0; i < (ab_text ->rows) - 4; i++)
     {
         Convert_to_comands(ab_str[i].str, output_file);
     }
@@ -215,57 +233,62 @@ void Convert_to_cheak_file(struct About_text* ab_text, struct About_str* ab_str)
 void Convert_to_comands(char* str, FILE* output_file)
 {
     int func_num = 0;
+    int arg_type = 0;
     int input_func = 0;
+    int simbol_a = 'a';
 
-    if (sscanf(str, "%d %d", &func_num, &input_func) == 2)
+    sscanf(str, "%d", &func_num);
+
+    switch (func_num)
     {
-        if (func_num == PUSH)
+    case PUSH:
+        sscanf(str, "%d %d %d", &func_num, &arg_type, &input_func);
+        switch (arg_type)
         {
+        case 1:
             fprintf(output_file,"push %d\n", input_func);
+            break;
+        case 2:
+            fprintf(output_file,"push r%cx\n", (char)((int)simbol_a + input_func));
+            break;
         }
-    }
-    else
-    {
-        if (func_num == HLT)
-        {
-            fprintf(output_file,"hlt\n");
-        }
-        if (func_num == SUB)
-        {
-            fprintf(output_file,"sub\n");
-        }
-        if (func_num == DIV)
-        {
-            fprintf(output_file,"div\n");
-        }
-        if (func_num == ADD)
-        {
-            fprintf(output_file,"add\n");
-        }
-        if (func_num == MUL)
-        {
-            fprintf(output_file,"mul\n");
-        }
-        if (func_num == SQRT)
-        {
-            fprintf(output_file,"sqrt\n");
-        }
-        if (func_num == SIN)
-        {
-            fprintf(output_file,"sin\n");
-        }
-        if (func_num == COS)
-        {
-            fprintf(output_file,"cos\n");
-        }
-        if (func_num == IN)
-        {
-            fprintf(output_file,"in\n");
-        }
-        if (func_num == OUT)
-        {
-            fprintf(output_file,"out\n");
-        }
-
+        break;
+    case POP:
+        sscanf(str,"%d %d", &func_num, &input_func);
+        fprintf(output_file,"pop r%cx\n", (char)((int)simbol_a + input_func));
+        break;
+    case HLT:
+        fprintf(output_file,"hlt\n");
+        break;
+    case SUB:
+        fprintf(output_file,"sub\n");
+        break;
+    case DIV:
+        fprintf(output_file,"div\n");
+        break;
+    case ADD:
+        fprintf(output_file,"add\n");
+        break;
+    case MUL:
+        fprintf(output_file,"mul\n");
+        break;
+    case SQRT:
+        fprintf(output_file,"sqrt\n");
+        break;
+    case COS:
+        fprintf(output_file,"cos\n");
+        break;
+    case SIN:
+        fprintf(output_file,"sin\n");
+        break;
+    case IN:
+        fprintf(output_file,"in\n");
+        break;
+    case OUT:
+        fprintf(output_file,"out\n");
+        break;
+    default:
+        printf("\n\033[31mIncorrect comand!!!\033[0m\n");
+        break;
     }
 }
