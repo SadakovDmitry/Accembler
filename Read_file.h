@@ -1,3 +1,5 @@
+typedef int Elem_t;
+
 struct About_text{
     int rows;
     int text_size;
@@ -23,9 +25,14 @@ enum Comands
     SQRT = 7,
     SIN  = 8,
     COS  = 9,
-    IN   = 10
+    IN   = 10,
+    POP  = 11
 };
 
+struct SPU{
+    Elem_t* args;
+    unsigned int SPU_err;
+};
 
 
 int Size_of_text(int* Num_rows, FILE* file);
