@@ -65,6 +65,8 @@ struct ERRORS
 
 
 
+
+
 void Put_canary(struct Stack* stk, struct Canary* canary);
 void Canareyca_Protection(struct Stack* stk, struct Canary* canary);
 int Hash_Protection(struct Stack* stk);
