@@ -6,6 +6,14 @@
 #include "Read_file.h"
 #include "stack.h"
 
+#define SPU_DUMP(stk, canary, spu) SPU_Dump(stk, canary, spu, (char*)__FILE__, __LINE__, __func__);
+#define NUM_ARGS 4
+
+enum SPU_ERR : unsigned int
+{
+    //NO_ERROR  = 0,
+    ARGS_NULL = 1 << 0
+};
 
 Elem_t hlt ();
 Elem_t push (struct Stack* stk, struct Canary* canary, char* str);
@@ -18,12 +26,15 @@ Elem_t sqrt (struct Stack* stk, struct Canary* canary);
 Elem_t sinus (struct Stack* stk, struct Canary* canary);
 Elem_t cosinus (struct Stack* stk, struct Canary* canary);
 Elem_t in (struct Stack* stk, struct Canary* canary);
-Elem_t pop (struct Stack* stk, struct Canary* canary);
+Elem_t pop (struct Stack* stk, struct Canary* canary, struct SPU* spu, char* arg);
 
-Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str);
-void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct Stack* stk, struct Canary* canary);
+Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct SPU* spu);
+void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct Stack* stk, struct Canary* canary, struct SPU* spu);
 
-
+unsigned int SPU_Verify(struct SPU* spu);
+void SPU_Dump(struct Stack* stk, struct Canary* canary, struct SPU* spu, char* file , int line, const char* func);
+void SPU_Dtor(struct Stack* stk, struct Canary* canary, struct SPU* spu);
+void SPU_Ctor(struct Stack* stk, struct Canary* canary, struct SPU* spu);
 
 
 Elem_t hlt ()
@@ -32,10 +43,8 @@ Elem_t hlt ()
     return HLT;
 }
 
-Elem_t push (struct Stack* stk, struct Canary* canary, char* str)
+Elem_t push (struct Stack* stk, struct Canary* canary, Elem_t val)
 {
-    Elem_t val = (Elem_t) atoi(str + 1);
-
     Stack_Push(stk, val, canary);
 
     return val;
@@ -158,7 +167,7 @@ Elem_t in (struct Stack* stk, struct Canary* canary)
 
     while (val == -3333333)
     {
-        Clean_buf()
+        Clean_buf();
 
         printf("\n\033[31mIncorrect input!!!\033[0m\n");
         printf("\n\033[33mPrint input value:\033[0m");
@@ -170,26 +179,131 @@ Elem_t in (struct Stack* stk, struct Canary* canary)
     return val;
 }
 
-Elem_t pop (struct Stack* stk, struct Canary* canary)
+Elem_t pop (struct Stack* stk, struct Canary* canary, struct SPU* spu, int arg)
 {
     Elem_t Ret_val = 0;
 
     Stack_Pop(stk, &Ret_val, canary);
 
+    *(spu -> args + arg) = Ret_val;
 
     return Ret_val;
 }
 
 
 
-Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str)
+void SPU_Ctor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
+{
+    assert(spu);
+
+    spu -> args = (Elem_t*) calloc(NUM_ARGS, sizeof(Elem_t));
+
+    assert(spu -> args);
+
+    if (SPU_Verify(spu) != NO_ERROR)
+    {
+        SPU_DUMP(stk, canary, spu)
+    }
+
+}
+
+void SPU_Dtor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
+{
+    assert(spu);
+    //spu -> args = NULL;
+
+    if (SPU_Verify(spu) != NO_ERROR)
+    {
+        SPU_DUMP(stk, canary, spu)
+    }
+    //SPU_DUMP(stk, canary, spu)
+    free(spu -> args);
+}
+
+void SPU_Dump(struct Stack* stk, struct Canary* canary, struct SPU* spu, char* file , int line, const char* func)
+{
+    assert(stk);
+    assert(canary);
+    assert(spu);
+
+    printf("\n\nSPU   |file: %s \n      |in: %d row \n      |function: %s \n", file, line, func);
+    printf("      |\t\t    rax  |  rbx  |  rcx  |  rdx  |\n");
+    printf("      |Arguments: ");
+
+    if (spu -> SPU_err & ARGS_NULL)
+    {
+        printf("\n\033[31mERROR\033[0m: pointer to ARGS = NULL!!!\n");
+    }
+
+    if (spu -> args != NULL)
+    {
+        for (int i = 0; i < NUM_ARGS; i++)
+        {
+            printf("%4d   |", spu -> args[i]);
+        }
+    }
+
+    printf("\n");
+    STACK_DUMP(stk, canary)
+}
+
+unsigned int SPU_Verify(struct SPU* spu)
+{
+    spu -> SPU_err = NO_ERROR;
+
+    if (spu -> args == NULL)
+    {
+        spu -> SPU_err |= ARGS_NULL;
+    }
+
+    return spu -> SPU_err;
+}
+
+
+
+Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct SPU* spu)
 {
     int func_num = 0;
+    int arg_type = 0;
     int input_func = 0;
 
-    if (sscanf(str, "%d %d", &func_num, &input_func) == 2)
+    sscanf(str,"%d", &func_num);
+
+    if (func_num == 1)
     {
-        push(stk, canary, str);
+        sscanf(str + 1,"%d", &arg_type);
+
+        switch (arg_type)
+        {
+        case 2:
+            sscanf(str + 3,"%d", &input_func);
+
+            push(stk, canary, spu -> args[input_func]);
+            break;
+        case 1:
+            if (sscanf(str + 3,"%d", &input_func) == 0)
+            {
+                printf("\n\033[31mIncorrect input!!!\033[0m\n");
+
+                return -1;
+            }
+
+            push(stk, canary, input_func);
+            break;
+        default:
+            printf("\n\033[31mIncorrect input!!!\033[0m\n");
+        }
+    }
+    else if (func_num == 11)
+    {
+        switch (sscanf(str + 2,"%d", &input_func))
+        {
+        case 1:
+            pop(stk, canary, spu, input_func);
+            break;
+        default:
+            printf("\n\033[31mIncorrect input!!!\033[0m\n");
+        }
     }
     else
     {
@@ -226,6 +340,8 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str)
         case OUT:
             out (stk, canary);
             break;
+        case POP:
+            pop (stk, canary, spu, input_func);
         case PUSH:
             printf("\n\033[31mIncorrect input!!!\033[0m\n");
             return -1;
@@ -238,14 +354,14 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str)
     return ZERO;
 }
 
-void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct Stack* stk, struct Canary* canary)
+void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct Stack* stk, struct Canary* canary, struct SPU* spu)
 {
     assert(ab_text != NULL);
     assert(ab_str != NULL);
 
     for (int i = 0; i < (ab_text ->rows - 4); i++)
     {
-        if (Choose_comand(stk, canary, ab_str[i].str) == -1 )
+        if (Choose_comand(stk, canary, ab_str[i].str, spu) == -1 )
         {
             break;
         }
@@ -253,15 +369,18 @@ void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct St
 }
 
 
+
 int main()
 {
     struct Canary canary = {};
     struct About_text ab_text = {};
     struct ERRORS ERR = {};
+    struct SPU spu = {};
     char* buffer = NULL;
     int Num_rows = 0;
     int capacity = 1;
     ab_text.first_or_second_file = 2;
+
 
 
     FILE* file = fopen("Numbered_comands.txt", "r");
@@ -269,7 +388,11 @@ int main()
     struct About_str* ab_str = Work_with_input_file(&ab_text, buffer, &Num_rows, file);
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
-    Print_data(stk);
 
-    Do_comands (&ab_text, ab_str, stk, &canary);
+    SPU_Ctor(stk, &canary, &spu);
+
+    Do_comands (&ab_text, ab_str, stk, &canary, &spu);
+
+    SPU_Dtor(stk, &canary, &spu);
+    Stack_Dtor(stk, &canary);
 }
