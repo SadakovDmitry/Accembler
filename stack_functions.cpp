@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include "stack.h"
 
+//#define DUMP_ON 1
 
 struct Stack* Stack_Ctor( int capacity, struct ERRORS* err, struct Canary* canary)
 {
@@ -41,7 +42,9 @@ struct Stack* Stack_Ctor( int capacity, struct ERRORS* err, struct Canary* canar
     }
     else
     {
-    STACK_DUMP(stk, canary)
+        #ifdef DUMP_ON
+        STACK_DUMP(stk, canary)
+        #endif
     }
 
     return stk;
@@ -76,7 +79,9 @@ int Stack_Push(struct Stack* stk, Elem_t val, struct Canary* canary)
     }
     else
     {
-    STACK_DUMP(stk, canary)
+        #ifdef DUMP_ON
+        STACK_DUMP(stk, canary)
+        #endif
     }
 
     return 0;
@@ -115,7 +120,9 @@ int Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary)
     }
     else
     {
+        #ifdef DUMP_ON
         STACK_DUMP(stk, canary)
+        #endif
     }
 
     return 0;
@@ -169,9 +176,9 @@ int Stack_Dump(struct Stack* stk, struct Canary* canary, char* file , int line, 
 {
     assert(stk);
     #ifdef HASH_ON
-    printf("\n\nFile: %s \nin: %d row \nFunction: %s \nhash = %d \nlast_hash = %d\n", file, line, func, stk -> hash, stk -> last_hash);
+    printf("\n\nStack file: %s \nin: %d row \nFunction: %s \nhash = %d \nlast_hash = %d\n", file, line, func, stk -> hash, stk -> last_hash);
     #else
-    printf("\n\nFile: %s \nin: %d row \nFunction: %s \n", file, line, func);
+    printf("\n\nStack |file: %s \n      |in: %d row \n      |function: %s \n", file, line, func);
     #endif
 
     stk -> Code_err = StackErr(stk, canary);
@@ -263,13 +270,13 @@ int Stack_Dtor(struct Stack* stk, struct Canary* canary)
     assert(stk);
     assert(canary);
 
-    stk -> die_stk = 0;
-
     if (StackErr(stk, canary) != NO_ERROR)
     {
         STACK_DUMP(stk, canary)
         return 0;
     }
+
+    stk -> die_stk = 0;
 
     if (stk -> data == NULL)
     {
@@ -318,7 +325,7 @@ void Put_canary(struct Stack* stk, struct Canary* canary)
     #endif
 }
 
-void Canareyca_Protection(struct Stack* stk, struct Canary* canary)                          // print canareyka protection
+void Canareyca_Protection(struct Stack* stk, struct Canary* canary)
 {
     assert(stk);
     assert(canary);
