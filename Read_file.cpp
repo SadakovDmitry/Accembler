@@ -104,6 +104,28 @@ struct About_str* Work_with_input_file(struct About_text* ab_text, char* buffer,
 }
 
 
+char* Work_with_bin_file(struct About_text* ab_text, char* buffer, int* Num_rows, FILE* file)
+{
+
+    int size_of_text = Size_of_text (Num_rows, file);
+    buffer = (char*) calloc (size_of_text + 1, sizeof(char));
+
+    file = fopen("code_bin.bin", "rb");
+
+
+
+    char* binstr = (char*) calloc( size_of_text, sizeof(unsigned long));
+    fread(binstr, sizeof (unsigned long), 100, file);
+
+    fill_struct( ab_text, Num_rows, size_of_text, buffer);
+    //Clean_buf();
+
+    return binstr;
+}
+
+
+
+
 enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int i )
 {
 
@@ -169,36 +191,49 @@ void Make_file(struct About_text* ab_text, struct About_str* ab_str)
     assert(ab_text != NULL);
     assert(ab_str != NULL);
 
-    FILE* output_file = fopen("Numbered_comands.txt", "a");
+    //FILE* output_file = fopen("Numbered_comands.txt", "a");
+    FILE* output_file = fopen("code_bin.bin", "wb");
 
     assert(output_file != NULL);
 
     for (int i = 0; i < (ab_text ->rows); i++)
     {
-        enum Comands num_of_comand = Convert_to_numbers(ab_str, ab_str[i].str, i);
+        int num_of_comand = (int) Convert_to_numbers(ab_str, ab_str[i].str, i);
         char simbol = 'a';
 
         switch (num_of_comand)
         {
         case 1:
-            fprintf(output_file, "%d ", num_of_comand);
+            //fprintf(output_file, "%d ", num_of_comand);
+            fprintf(output_file, "%c", (char) num_of_comand);
+            printf("1)%c", (char) num_of_comand);
 
             if (strncmp(ab_str[i].str + 5, "rax", 3) == 0 || strncmp(ab_str[i].str + 5, "rbx", 3) == 0 || strncmp(ab_str[i].str + 5, "rcx", 3) == 0 || strncmp(ab_str[i].str + 5, "rdx", 3) == 0)
             {
-                fprintf(output_file, "2 %d\n", (int)(*(ab_str[i].str + 6)) - (int)simbol);
+                //fprintf(output_file, "2 %d\n", (int)(*(ab_str[i].str + 6)) - (int)simbol);
+                fprintf(output_file, "%c%c", (char) 2, (char) ((int) (*(ab_str[i].str + 6)) - (int)simbol));
+                printf("3)%c/%c", 2, (char) ((int) (*(ab_str[i].str + 6)) - (int)simbol));
             }
             else
             {
-                fprintf(output_file, "1 %s", ab_str[i].str + 5);
+                //fprintf(output_file, "1 %s", ab_str[i].str + 5);
+                fprintf(output_file, "%c%c",(char) 1,  (char) atoi(ab_str[i].str + 5));
+                printf("4)%c/%c", (char) 1,  (char) atoi(ab_str[i].str + 5));
             }
 
             break;
         case 11:
-            fprintf(output_file, "%d ", num_of_comand);
-            fprintf(output_file, "%d\n",  (int)(*(ab_str[i].str + 5)) - (int)simbol);
+            //fprintf(output_file, "%d ", num_of_comand);
+            fprintf(output_file, "%c", (char) num_of_comand);
+            printf("5)%c", (char) num_of_comand);
+            //fprintf(output_file, "%d\n",  (int)(*(ab_str[i].str + 5)) - (int)simbol);
+            fprintf(output_file, "%c",  (char) ((int) (*(ab_str[i].str + 5)) - (int)simbol));
+            printf("6)%c",  (char) ((int) (*(ab_str[i].str + 5)) - (int)simbol));
             break;
         default:
-            fprintf(output_file, "%d\n", num_of_comand);
+            //fprintf(output_file, "%d\n", num_of_comand);
+            fprintf(output_file, "%c", (char) num_of_comand);
+            printf("7)%c", (char) num_of_comand);
         }
 
     }

@@ -44,3 +44,4 @@ void fill_struct( struct About_text* ab_text, int* Num_rows, int size_of_text, c
 enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int i);
 void Convert_to_comands(char* str, FILE* output_file);
 void Convert_to_cheak_file(struct About_text* ab_text, struct About_str* ab_str);
+char* Work_with_bin_file(struct About_text* ab_text, char* buffer, int* Num_rows, FILE* file);
