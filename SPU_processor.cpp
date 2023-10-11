@@ -11,7 +11,6 @@
 
 enum SPU_ERR : unsigned int
 {
-    //NO_ERROR  = 0,
     ARGS_NULL = 1 << 0
 };
 
@@ -204,6 +203,12 @@ void SPU_Ctor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
     {
         SPU_DUMP(stk, canary, spu)
     }
+    else
+    {
+        #ifdef SPU_DUMP_ON
+        SPU_DUMP(stk, canary, spu)
+        #endif
+    }
 
 }
 
@@ -216,7 +221,12 @@ void SPU_Dtor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
     {
         SPU_DUMP(stk, canary, spu)
     }
-    //SPU_DUMP(stk, canary, spu)
+    else
+    {
+        #ifdef SPU_DUMP_ON
+        SPU_DUMP(stk, canary, spu)
+        #endif
+    }
     free(spu -> args);
 }
 
@@ -244,7 +254,9 @@ void SPU_Dump(struct Stack* stk, struct Canary* canary, struct SPU* spu, char* f
     }
 
     printf("\n");
+    #ifdef SPU_DUMP_ON
     STACK_DUMP(stk, canary)
+    #endif
 }
 
 unsigned int SPU_Verify(struct SPU* spu)
@@ -261,29 +273,41 @@ unsigned int SPU_Verify(struct SPU* spu)
 
 
 
-Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct SPU* spu)
+Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, struct About_str* ab_str, struct SPU* spu)
 {
     int func_num = 0;
     int arg_type = 0;
     int input_func = 0;
+    int i = 0;
 
-    sscanf(str,"%d", &func_num);
+    //sscanf(str,"%d", &func_num);
+    func_num = (int) *(ab_str -> str);
+    printf("\n\n\n\033[32mfunc_num = %d\033[0m\n", func_num);
 
     if (func_num == 1)
     {
-        sscanf(str + 1,"%d", &arg_type);
+        //sscanf(str + 1,"%d", &arg_type);
+        arg_type = (int) *(ab_str -> str + 1);
+        printf("\n\033[32mArg_type = %d\033[0m\n", arg_type);
 
         switch (arg_type)
         {
         case 2:
-            sscanf(str + 3,"%d", &input_func);
+            //sscanf(str + 3,"%d", &input_func);
+            input_func = (int) *(ab_str -> str + 2);
+            printf("\n\033[32minput_func = %d\033[0m\n", input_func);
 
             push(stk, canary, spu -> args[input_func]);
             break;
         case 1:
-            if (sscanf(str + 3,"%d", &input_func) == 0)
+            //if (sscanf(str + 3,"%d", &input_func) == 0)
+            input_func = (int) *(ab_str -> str + 2);
+            printf("\n\033[32minput_func = %d\033[0m\n", input_func);
+
+            if (input_func == NAN)
             {
                 printf("\n\033[31mIncorrect input!!!\033[0m\n");
+                //ab_str -> str = ab_str -> str 3;
 
                 return -1;
             }
@@ -293,17 +317,35 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct
         default:
             printf("\n\033[31mIncorrect input!!!\033[0m\n");
         }
+
+        ab_str -> str = ab_str -> str + 3;                                                                       //
     }
+
     else if (func_num == 11)
     {
-        switch (sscanf(str + 2,"%d", &input_func))
+        //switch (sscanf(str + 2,"%d", &input_func))
+        input_func = (int) *(ab_str -> str + 1);
+        printf("\n\033[32minput_func = %d\033[0m\n", input_func);
+        /*
+        switch (input_func == NAN)
         {
         case 1:
             pop(stk, canary, spu, input_func);
+
             break;
         default:
             printf("\n\033[31mIncorrect input!!!\033[0m\n");
         }
+        */
+        if (input_func != NAN)
+        {
+            pop(stk, canary, spu, input_func);
+        }
+        else
+        {
+            printf("\n\033[31mIncorrect input!!!\033[0m\n");
+        }
+        ab_str -> str = ab_str -> str + 2;
     }
     else
     {
@@ -350,7 +392,13 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct
             return -1;
             break;
         }
+        ab_str -> str = ab_str -> str + 1;
     }
+
+    #ifdef SPU_DUMP_ON
+        SPU_DUMP(stk, canary, spu)
+    #endif
+
     return ZERO;
 }
 
@@ -358,10 +406,10 @@ void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct St
 {
     assert(ab_text != NULL);
     assert(ab_str != NULL);
-
-    for (int i = 0; i < (ab_text ->rows - 4); i++)
+    int i = 0;
+    while(true)
     {
-        if (Choose_comand(stk, canary, ab_str[i].str, spu) == -1 )
+        if (Choose_comand(stk, canary, ab_str, spu) == -1)
         {
             break;
         }
@@ -373,6 +421,7 @@ void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct St
 int main()
 {
     struct Canary canary = {};
+    struct About_str ab_str = {};
     struct About_text ab_text = {};
     struct ERRORS ERR = {};
     struct SPU spu = {};
@@ -383,15 +432,17 @@ int main()
 
 
 
-    FILE* file = fopen("Numbered_comands.txt", "r");
+    //FILE* file = fopen("Numbered_comands.txt", "r");
+    FILE* file = fopen("code_bin.bin", "rb");
 
-    struct About_str* ab_str = Work_with_input_file(&ab_text, buffer, &Num_rows, file);
+    ab_str.str = Work_with_bin_file(&ab_text, buffer, &Num_rows, file);
+    //printf("\n<<%s>>\n",ab_str.str);
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
 
     SPU_Ctor(stk, &canary, &spu);
 
-    Do_comands (&ab_text, ab_str, stk, &canary, &spu);
+    Do_comands (&ab_text, &ab_str, stk, &canary, &spu);
 
     SPU_Dtor(stk, &canary, &spu);
     Stack_Dtor(stk, &canary);
