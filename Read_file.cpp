@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include "Read_file.h"
 
 
@@ -17,9 +18,6 @@ void fill_struct( struct About_text* ab_text, int* Num_rows, int size_of_text, c
     ab_text -> rows = *Num_rows;
     ab_text -> text_size = size_of_text;
     ab_text -> id_buf = buffer;
-
-
-    //printf(" Num_rows =  %d \n", ab_text -> rows);
 }
 
 
@@ -33,7 +31,11 @@ int Size_of_text(int* Num_rows, FILE* file )
 
     while ((input = fgetc(file)) != EOF)
     {
-        size_of_file++;
+        if (input == ' ')
+        {
+            size_of_file++;
+        }
+        //size_of_file++;
 
         if (input == '\n')
         {
@@ -47,9 +49,6 @@ int Size_of_text(int* Num_rows, FILE* file )
 struct About_str* Input_text (int Num_rows, char* buffer, FILE* file) {
 
     assert(buffer != NULL);
-
-    //FILE* file = fopen("Text_comands.txt", "r");
-
     assert ( file != NULL );
 
 
@@ -82,8 +81,10 @@ struct About_str* Input_text (int Num_rows, char* buffer, FILE* file) {
 struct About_str* Work_with_input_file(struct About_text* ab_text, char* buffer, int* Num_rows, FILE* file)
 {
 
-    int size_of_text = Size_of_text (Num_rows, file);
-    buffer = (char*) calloc (size_of_text + 1, sizeof(char));
+    Size_of_text (Num_rows, file);                                                                                                                //nado ispravit
+    int size_of_text = (*Num_rows) * 3;
+
+    buffer = (char*) calloc (size_of_text * 100, sizeof(char));                                                                                   //nado ispravit
 
     if (ab_text -> first_or_second_file == 1)
     {
@@ -104,23 +105,18 @@ struct About_str* Work_with_input_file(struct About_text* ab_text, char* buffer,
 }
 
 
-char* Work_with_bin_file(struct About_text* ab_text, char* buffer, int* Num_rows, FILE* file)
+int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
 {
+    struct stat st = {};
+    stat("code_bin.bin", &st);
 
-    int size_of_text = Size_of_text (Num_rows, file);
-    buffer = (char*) calloc (size_of_text + 1, sizeof(char));
+    int* bin_buf = (int*) calloc (st.st_size + 1, sizeof(char));
+    fread(bin_buf, sizeof (int), st.st_size, file);
 
-    file = fopen("code_bin.bin", "rb");
-
-
-
-    char* binstr = (char*) calloc( size_of_text, sizeof(unsigned long));
-    fread(binstr, sizeof (unsigned long), 100, file);
-
-    fill_struct( ab_text, Num_rows, size_of_text, buffer);
+    ab_text -> text_size = st.st_size;
     //Clean_buf();
 
-    return binstr;
+    return bin_buf;
 }
 
 
@@ -186,15 +182,17 @@ enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int
 }
 
 
-void Make_file(struct About_text* ab_text, struct About_str* ab_str)
+void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str)
 {
     assert(ab_text != NULL);
     assert(ab_str != NULL);
 
-    //FILE* output_file = fopen("Numbered_comands.txt", "a");
     FILE* output_file = fopen("code_bin.bin", "wb");
 
     assert(output_file != NULL);
+
+    int* bin_buf = (int*) calloc (ab_text -> text_size + 1, sizeof(int));
+    int j = 0;
 
     for (int i = 0; i < (ab_text ->rows); i++)
     {
@@ -204,80 +202,78 @@ void Make_file(struct About_text* ab_text, struct About_str* ab_str)
         switch (num_of_comand)
         {
         case 1:
-            //fprintf(output_file, "%d ", num_of_comand);
-            fprintf(output_file, "%c", (char) num_of_comand);
-            printf("1)%c", (char) num_of_comand);
+            *(bin_buf + j) = num_of_comand;
+
 
             if (strncmp(ab_str[i].str + 5, "rax", 3) == 0 || strncmp(ab_str[i].str + 5, "rbx", 3) == 0 || strncmp(ab_str[i].str + 5, "rcx", 3) == 0 || strncmp(ab_str[i].str + 5, "rdx", 3) == 0)
             {
-                //fprintf(output_file, "2 %d\n", (int)(*(ab_str[i].str + 6)) - (int)simbol);
-                fprintf(output_file, "%c%c", (char) 2, (char) ((int) (*(ab_str[i].str + 6)) - (int)simbol));
-                printf("3)%c/%c", 2, (char) ((int) (*(ab_str[i].str + 6)) - (int)simbol));
+                *(bin_buf + j + 1) = 2;
+                *(bin_buf + j + 2) = (int) (*(ab_str[i].str + 6)) - (int) simbol;
             }
             else
             {
-                //fprintf(output_file, "1 %s", ab_str[i].str + 5);
-                fprintf(output_file, "%c%c",(char) 1,  (char) atoi(ab_str[i].str + 5));
-                printf("4)%c/%c", (char) 1,  (char) atoi(ab_str[i].str + 5));
+                *(bin_buf + j + 1) = 1;
+                *(bin_buf + j + 2) = atoi(ab_str[i].str + 5);
             }
+
+            j = j + 3;
 
             break;
         case 11:
-            //fprintf(output_file, "%d ", num_of_comand);
-            fprintf(output_file, "%c", (char) num_of_comand);
-            printf("5)%c", (char) num_of_comand);
-            //fprintf(output_file, "%d\n",  (int)(*(ab_str[i].str + 5)) - (int)simbol);
-            fprintf(output_file, "%c",  (char) ((int) (*(ab_str[i].str + 5)) - (int)simbol));
-            printf("6)%c",  (char) ((int) (*(ab_str[i].str + 5)) - (int)simbol));
+            *(bin_buf + j) = num_of_comand;
+            *(bin_buf + j + 1) = (int) (*(ab_str[i].str + 5)) - (int)simbol;
+            j = j + 2;
+
             break;
         default:
-            //fprintf(output_file, "%d\n", num_of_comand);
-            fprintf(output_file, "%c", (char) num_of_comand);
-            printf("7)%c", (char) num_of_comand);
+            *(bin_buf + j) = num_of_comand;
+            j++;
         }
 
     }
 
-    fputs("\n\n\n\n", output_file);
-
+    fwrite(bin_buf, sizeof (int), j, output_file);
     fclose(output_file);
 }
 
 
-void Convert_to_cheak_file(struct About_text* ab_text, struct About_str* ab_str)
+void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu)
 {
     assert(ab_text != NULL);
-    assert(ab_str != NULL);
+    assert(spu -> bin_buf != NULL);
 
     FILE* output_file = fopen("Cheak_file.txt", "w");
 
     assert(output_file != NULL);
 
-    for (int i = 0; i < (ab_text ->rows) - 4; i++)
+    while(true)
     {
-        Convert_to_comands(ab_str[i].str, output_file);
+        if (Convert_to_comands(spu, output_file) == -1)
+        {
+            break;
+        }
     }
-
-    fputs("\n\n\n\n", output_file);
 
     fclose(output_file);
 
 }
 
 
-void Convert_to_comands(char* str, FILE* output_file)
+int Convert_to_comands(struct SPU* spu, FILE* output_file)
 {
     int func_num = 0;
     int arg_type = 0;
     int input_func = 0;
     int simbol_a = 'a';
 
-    sscanf(str, "%d", &func_num);
+    func_num = *(spu -> bin_buf);
 
-    switch (func_num)
+    if (func_num == PUSH)
     {
-    case PUSH:
-        sscanf(str, "%d %d %d", &func_num, &arg_type, &input_func);
+        func_num = *(spu -> bin_buf);
+        arg_type = *(spu -> bin_buf + 1);
+        input_func = *(spu -> bin_buf + 2);
+
         switch (arg_type)
         {
         case 1:
@@ -287,43 +283,56 @@ void Convert_to_comands(char* str, FILE* output_file)
             fprintf(output_file,"push r%cx\n", (char)((int)simbol_a + input_func));
             break;
         }
-        break;
-    case POP:
-        sscanf(str,"%d %d", &func_num, &input_func);
-        fprintf(output_file,"pop r%cx\n", (char)((int)simbol_a + input_func));
-        break;
-    case HLT:
-        fprintf(output_file,"hlt\n");
-        break;
-    case SUB:
-        fprintf(output_file,"sub\n");
-        break;
-    case DIV:
-        fprintf(output_file,"div\n");
-        break;
-    case ADD:
-        fprintf(output_file,"add\n");
-        break;
-    case MUL:
-        fprintf(output_file,"mul\n");
-        break;
-    case SQRT:
-        fprintf(output_file,"sqrt\n");
-        break;
-    case COS:
-        fprintf(output_file,"cos\n");
-        break;
-    case SIN:
-        fprintf(output_file,"sin\n");
-        break;
-    case IN:
-        fprintf(output_file,"in\n");
-        break;
-    case OUT:
-        fprintf(output_file,"out\n");
-        break;
-    default:
-        printf("\n\033[31mIncorrect comand!!!\033[0m\n");
-        break;
+        spu -> bin_buf = spu -> bin_buf + 3;
     }
+    else if (func_num == POP)
+    {
+        input_func = *(spu -> bin_buf + 1);
+        fprintf(output_file,"pop r%cx\n", (char)((int)simbol_a + input_func));
+        spu -> bin_buf = spu -> bin_buf + 2;
+    }
+    else
+    {
+        switch(func_num)
+        {
+        case HLT:
+            fprintf(output_file,"hlt\n");
+            return -1;
+            break;
+        case SUB:
+            fprintf(output_file,"sub\n");
+            break;
+        case DIV:
+            fprintf(output_file,"div\n");
+            break;
+        case ADD:
+            fprintf(output_file,"add\n");
+            break;
+        case MUL:
+            fprintf(output_file,"mul\n");
+            break;
+        case SQRT:
+            fprintf(output_file,"sqrt\n");
+            break;
+        case COS:
+            fprintf(output_file,"cos\n");
+            break;
+        case SIN:
+            fprintf(output_file,"sin\n");
+            break;
+        case IN:
+            fprintf(output_file,"in\n");
+            break;
+        case OUT:
+            fprintf(output_file,"out\n");
+            break;
+        default:
+            printf("\n\033[31mIncorrect comand!!!\033[0m\n");
+            break;
+        }
+        spu -> bin_buf = spu -> bin_buf + 1;
+    }
+    return 1;
 }
+
+
