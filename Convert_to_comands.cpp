@@ -9,13 +9,12 @@
 int main()
 {
     struct About_text ab_text = {};
-    char* buffer = NULL;
-    int Num_rows = 0;
+    struct SPU spu = {};
     ab_text.first_or_second_file = 2;
 
-    FILE* file = fopen("Numbered_comands.txt", "r");
+    FILE* file = fopen("code_bin.bin", "rb");
 
-    struct About_str* ab_str = Work_with_input_file(&ab_text, buffer, &Num_rows, file);
+    spu.bin_buf = Work_with_bin_file(&ab_text, file);
 
-    Convert_to_cheak_file(&ab_text, ab_str);
+    Convert_to_cheak_file(&ab_text, &spu);
 }
