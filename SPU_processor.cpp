@@ -13,7 +13,7 @@ enum SPU_ERR : unsigned int
 {
     ARGS_NULL = 1 << 0
 };
-
+/*
 Elem_t hlt ();
 Elem_t push (struct Stack* stk, struct Canary* canary, char* str);
 Elem_t sub (struct Stack* stk, struct Canary* canary);
@@ -26,8 +26,8 @@ Elem_t sinus (struct Stack* stk, struct Canary* canary);
 Elem_t cosinus (struct Stack* stk, struct Canary* canary);
 Elem_t in (struct Stack* stk, struct Canary* canary);
 Elem_t pop (struct Stack* stk, struct Canary* canary, struct SPU* spu, char* arg);
-
-Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct SPU* spu);
+*/
+//Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, char* str, struct SPU* spu);
 void Do_comands (struct About_text* ab_text, struct About_str* ab_str, struct Stack* stk, struct Canary* canary, struct SPU* spu);
 
 unsigned int SPU_Verify(struct SPU* spu);
@@ -35,11 +35,11 @@ void SPU_Dump(struct Stack* stk, struct Canary* canary, struct SPU* spu, char* f
 void SPU_Dtor(struct Stack* stk, struct Canary* canary, struct SPU* spu);
 void SPU_Ctor(struct Stack* stk, struct Canary* canary, struct SPU* spu);
 
-
+/*
 Elem_t hlt ()
 {
     printf("\n\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[31mEND\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[0m\n");
-    return HLT;
+    return CMD_HLT;
 }
 
 Elem_t push (struct Stack* stk, struct Canary* canary, Elem_t val)
@@ -188,6 +188,7 @@ Elem_t pop (struct Stack* stk, struct Canary* canary, struct SPU* spu, int arg)
 
     return Ret_val;
 }
+*/
 
 
 
@@ -271,8 +272,63 @@ unsigned int SPU_Verify(struct SPU* spu)
     return spu -> SPU_err;
 }
 
+#define DEF_CMD(name, code, args, program) \
+    if (code == func_num)\
+    {\
+        switch (args)\
+        {\
+        case 2:\
+            arg_type = *(spu -> bin_buf + 1);\
+            \
+            switch (arg_type)\
+            {\
+            case 2:\
+                input_func = *(spu -> bin_buf + 2);\
+                \
+                program\
+                break;\
+            case 1:\
+                input_func = *(spu -> bin_buf + 2);\
+                \
+                if (input_func == NAN)\
+                {\
+                    printf("\n\033[31mIncorrect input!!!\033[0m\n");\
+                    \
+                }\
+                \
+                program\
+                break;\
+            default:\
+                printf("\n\033[31mIncorrect input!!!\033[0m\n");\
+            }\
+            spu -> bin_buf = spu -> bin_buf + 3;\
+            break;\
+        case 1:\
+            arg_type = *(spu -> bin_buf + 1);\
+            \
+            if (input_func != NAN)\
+            {\
+                program\
+            }\
+            else\
+            {\
+                printf("\n\033[31mIncorrect input!!!\033[0m\n");\
+            }\
+            spu -> bin_buf = spu -> bin_buf + 2;\
+            break;\
+        case 0:\
+            program\
+            spu -> bin_buf = spu -> bin_buf + 1;\
+            break;\
+        default:\
+            printf("\n\033[31m1)Incorrect comand!!!\033[0m\n");\
+        }\
+    \
+    }\
 
 
+
+/*
 Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, struct SPU* spu)
 {
     int func_num = 0;
@@ -330,40 +386,40 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, struct SPU* spu)
     {
         switch (func_num)
         {
-        case HLT:
+        case CMD_HLT:
             hlt ();
-            return HLT;
+            return CMD_HLT;
             break;
-        case SUB:
+        case CMD_SUB:
             sub (stk, canary);
             break;
-        case DIV:
+        case CMD_DIV:
             div (stk, canary);
             break;
-        case ADD:
+        case CMD_ADD:
             add (stk, canary);
             break;
-        case MUL:
+        case CMD_MUL:
             mul (stk, canary);
             break;
-        case SQRT:
+        case CMD_SQRT:
             sqrt (stk, canary);
             break;
-        case COS:
+        case CMD_COS:
             cosinus (stk, canary);
             break;
-        case SIN:
+        case CMD_SIN:
             sinus (stk, canary);
             break;
-        case IN:
+        case CMD_IN:
             in (stk, canary);
             break;
-        case OUT:
+        case CMD_OUT:
             out (stk, canary);
             break;
-        case POP:
+        case CMD_POP:
             pop (stk, canary, spu, input_func);
-        case PUSH:
+        case CMD_PUSH:
             printf("\n\033[31mIncorrect input!!!\033[0m\n");
             return -1;
         default:
@@ -378,14 +434,14 @@ Elem_t Choose_comand(struct Stack* stk, struct Canary* canary, struct SPU* spu)
         SPU_DUMP(stk, canary, spu)
     #endif
 
-    return ZERO;
+    return CMD_ZERO;
 }
 
 void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* canary, struct SPU* spu)
 {
     assert(ab_text != NULL);
     assert(spu -> bin_buf != NULL);
-    int i = 0;
+
     while(true)
     {
         if (Choose_comand(stk, canary, spu) == -1)
@@ -394,7 +450,22 @@ void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* c
         }
     }
 }
+*/
+void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* canary, struct SPU* spu)
+{
+    assert(ab_text != NULL);
+    assert(spu -> bin_buf != NULL);
 
+    int func_num = 0;
+    int arg_type = 0;
+    int input_func = 0;
+
+    while(func_num != CMD_HLT)
+    {
+        func_num = *(spu -> bin_buf);
+        #include "commands.h"
+    }
+}
 
 
 int main()
@@ -414,7 +485,10 @@ int main()
     FILE* file = fopen("code_bin.bin", "rb");
 
     spu.bin_buf = Work_with_bin_file(&ab_text, file);
-
+    for (int i = 0; i < ab_text.text_size; i++)
+    {
+        printf("%d ", *(spu.bin_buf + i));
+    }
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
 
@@ -424,4 +498,5 @@ int main()
 
     SPU_Dtor(stk, &canary, &spu);
     Stack_Dtor(stk, &canary);
+    #undef DEF_CMD
 }
