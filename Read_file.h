@@ -1,3 +1,5 @@
+#include "enum_commands.h"
+
 typedef int Elem_t;
 
 struct About_text{
@@ -12,22 +14,7 @@ struct About_str{
     int len;
 };
 
-enum Comands
-{
-    ZERO = 0,
-    HLT  = -1,
-    PUSH = 1,
-    SUB  = 2,
-    DIV  = 3,
-    OUT  = 4,
-    ADD  = 5,
-    MUL  = 6,
-    SQRT = 7,
-    SIN  = 8,
-    COS  = 9,
-    IN   = 10,
-    POP  = 11
-};
+
 
 struct SPU{
     int* bin_buf;
