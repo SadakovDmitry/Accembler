@@ -10,7 +10,7 @@
     if (!strcasecmp( str, #name))\
     {\
         char simbol_a = 'a';\
-        char arg[] = "";\
+        char arg[4] = "";\
         switch (args)\
         {\
         case 2:\
@@ -32,8 +32,9 @@
             \
             break;\
         case 1:\
+            fscanf(file, "%s", arg);\
             *(bin_buf + j) = num_of_comand;\
-            *(bin_buf + j + 1) = (int) (arg[1]) - (int)simbol_a;\
+            *(bin_buf + j + 1) = (int) (arg[1]) - (int) simbol_a;\
             j = j + 2;\
             \
             break;\
@@ -63,12 +64,10 @@ int main()
 
 int main()
 {
-
     int Num_rows = 0;
 
     FILE* file_to_count_rows = fopen("Text_comands.txt", "r");
     Size_of_text(&Num_rows, file_to_count_rows );
-    char str[] = "";
     fclose(file_to_count_rows);
 
     FILE* file = fopen("Text_comands.txt", "r");
@@ -77,21 +76,25 @@ int main()
 
     int* bin_buf = (int*) calloc (Num_rows * 3, sizeof(int));
     int j = 0;
-    printf("num_rows = %d\n", Num_rows);
-    for (int bolshoy_huy = 0; bolshoy_huy < Num_rows + 50; bolshoy_huy++)
+
+    char str[5] = "ZERO";
+    //printf("num_rows = %d\n", Num_rows);
+
+    for (int i = 0; i < Num_rows + 1; i++)
     {
-        printf("bol huy = %d\n", bolshoy_huy);
         fscanf(file, "%s", str);
         #include "commands.h"
     }
     FILE* output_file = fopen("code_bin.bin", "wb");
 
     assert(output_file != NULL);
-
+    /*
     for (int i = 0; i < j; i++)
     {
         printf("%d ", *(bin_buf + i));
     }
+    */
+
 
     fwrite(bin_buf, sizeof (int), j, output_file);
 
