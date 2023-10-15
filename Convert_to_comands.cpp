@@ -16,5 +16,6 @@ int main()
 
     spu.bin_buf = Work_with_bin_file(&ab_text, file);
 
+
     Convert_to_cheak_file(&ab_text, &spu);
 }
