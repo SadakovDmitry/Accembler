@@ -1,5 +1,5 @@
 //#include "stack.h"
-//#define DO_PUSH(val) Stack_Push(stk, val, canary)
+//#define DO_PUSH(stk, val, canary) Stack_Push(stk, val, canary)
 
 //#define DO_POP  Stack_Pop(stk, &val, canary)
 
@@ -139,15 +139,23 @@ DEF_CMD (HLT, -1, 0,
     //return -1;
     })
 
+DEF_CMD(NOT, 12, 0,
+    {
+    Elem_t Ret_val = 0;
+
+    Stack_Pop(stk, &Ret_val, canary);
+
+    Stack_Push(stk, Ret_val * -1, canary);
+    })
+
 
 /*
-DEF_CMD (ZERO, 0, 0, 0)
+DEF_CMD (ZERO, 0, 0, {if (0) {}})
 
 DEF_CMD (PUSH, 1, 2,
     {
     DO_PUSH(input_func);
 
-    //return val;
     })
 
 DEF_CMD (SUB , 2, 0,
@@ -158,7 +166,6 @@ DEF_CMD (SUB , 2, 0,
 
     DO_PUSH (Ret_val2 -  Ret_val1);
 
-    //return val;
     })
 
 DEF_CMD (DIV , 3, 0,
@@ -260,4 +267,5 @@ DEF_CMD (HLT, -1, 0,
     printf("\n\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[31mEND\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[32m-\033[34m-\033[36m-\033[35m-\033[31m-\033[33m-\033[0m\n");
     return -1;
     })
-*/
+    */
+
