@@ -121,7 +121,7 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
 
 
 
-
+/*
 enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int i )
 {
 
@@ -235,7 +235,7 @@ void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str)
     fwrite(bin_buf, sizeof (int), j, output_file);
     fclose(output_file);
 }
-
+*/
 
 
 #define DEF_CMD(name, code , args, ...)\
@@ -253,10 +253,10 @@ void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str)
             switch(arg_type)\
             {\
             case 1:\
-                fprintf(output_file,"push %d\n", input_func);\
+                fprintf(output_file,"PUSH %d\n", input_func);\
                 break;\
             case 2:\
-                fprintf(output_file,"push r%cx\n", (char)((int)simbol_a + input_func));\
+                fprintf(output_file,"PUSH r%cx\n", (char)((int)simbol_a + input_func));\
                 break;\
             }\
             spu -> bin_buf = spu -> bin_buf + 3;\
@@ -264,7 +264,7 @@ void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str)
         case 1:\
             input_func = *(spu -> bin_buf + 1);\
             printf("input_func = %d\n", input_func);\
-            fprintf(output_file,"pop r%cx\n", (char)((int)simbol_a + input_func));\
+            fprintf(output_file,"POP r%cx\n", (char)((int)simbol_a + input_func));\
             spu -> bin_buf = spu -> bin_buf + 2;\
             break;\
         case 0:\
