@@ -272,10 +272,10 @@ unsigned int SPU_Verify(struct SPU* spu)
     return spu -> SPU_err;
 }
 
-#define DEF_CMD(name, code, args, program) \
+#define DEF_CMD(name, code, num_args, program) \
     if (code == func_num)\
     {\
-        switch (args)\
+        switch (num_args)\
         {\
         case 2:\
             arg_type = *(spu -> bin_buf + 1);\
@@ -284,6 +284,7 @@ unsigned int SPU_Verify(struct SPU* spu)
             {\
             case 2:\
                 input_func = *(spu -> bin_buf + 2);\
+                input_func = spu -> args[input_func];\
                 \
                 program\
                 break;\
@@ -485,10 +486,12 @@ int main()
     FILE* file = fopen("code_bin.bin", "rb");
 
     spu.bin_buf = Work_with_bin_file(&ab_text, file);
+    /*
     for (int i = 0; i < ab_text.text_size; i++)
     {
         printf("%d ", *(spu.bin_buf + i));
     }
+    */
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
 
