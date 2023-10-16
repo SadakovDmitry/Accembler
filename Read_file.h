@@ -23,6 +23,13 @@ struct SPU{
 };
 
 
+enum SPU_ERR : unsigned int
+{
+    ARGS_NULL = 1 << 0,
+    INCORRECT_INPUT = 1 << 1,
+    INCORRECT_COMAND = 1 << 2
+};
+
 int Size_of_text(int* Num_rows, FILE* file);
 struct About_str* Input_text (int Num_rows, char* buffer, FILE* file);
 void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str);
