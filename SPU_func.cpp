@@ -115,58 +115,28 @@ unsigned int SPU_Verify(struct SPU* spu)
 
 
 #define DEF_CMD(name, code, num_args, program) \
-    if (code == func_num)\
+    printf("%d\n", func_num &= 1 << (code + 5));\
+    if (func_num &= 1 << (code + 5))\
     {\
-        switch (num_args)\
+        printf("1)%s\n", #name);\
+        if (func_num &= 1 << (code + 6))\
         {\
-        case 2:\
-            arg_type = *(spu -> bin_buf + 1);\
-            \
-            switch (arg_type)\
-            {\
-            case 2:\
-                input_func = *(spu -> bin_buf + 2);\
-                input_func = spu -> args[input_func];\
-                \
-                program\
-                break;\
-            case 1:\
-                input_func = *(spu -> bin_buf + 2);\
-                \
-                if (input_func == NAN)\
-                {\
-                    printf("\n\033[31mIncorrect input!!!\033[0m\n");\
-                    \
-                }\
-                \
-                program\
-                break;\
-            default:\
-                printf("\n\033[31mIncorrect input!!!\033[0m\n");\
-            }\
-            spu -> bin_buf = spu -> bin_buf + 3;\
-            break;\
-        case 1:\
-            arg_type = *(spu -> bin_buf + 1);\
-            \
-            if (input_func != NAN)\
-            {\
-                program\
-            }\
-            else\
-            {\
-                printf("\n\033[31mIncorrect input!!!\033[0m\n");\
-            }\
-            spu -> bin_buf = spu -> bin_buf + 2;\
-            break;\
-        case 0:\
+            input_func = *(spu -> bin_buf + 1);\
             program\
-            spu -> bin_buf = spu -> bin_buf + 1;\
-            break;\
-        default:\
-            printf("\n\033[31m1)Incorrect comand!!!\033[0m\n");\
         }\
-    \
+        else\
+        {\
+            input_func = *(spu -> bin_buf + 1);\
+            input_func = spu -> args[input_func];\
+            program\
+        }\
+        spu -> bin_buf = spu -> bin_buf + 2;\
+    }\
+    else if (code == func_num)\
+    {\
+        printf("2)%s\n", #name);\
+        program\
+        spu -> bin_buf = spu -> bin_buf + 1;\
     }\
 
 
@@ -177,14 +147,20 @@ void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* c
     assert(spu -> bin_buf != NULL);
 
     int func_num = 0;
-    int arg_type = 0;
     int input_func = 0;
 
     while(func_num != CMD_HLT)
     {
         func_num = *(spu -> bin_buf);
         #include "commands.h"
+        /*else*/
+        {
+            spu -> SPU_err |= INCORRECT_COMAND;
+            break;
+        }
     }
+    SPU_DUMP(spu)
+
     #undef DEF_CMD
 }
 
