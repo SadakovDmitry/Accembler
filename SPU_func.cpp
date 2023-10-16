@@ -113,7 +113,7 @@ unsigned int SPU_Verify(struct SPU* spu)
     return spu -> SPU_err;
 }
 
-
+/*
 #define DEF_CMD(name, code, num_args, program) \
     printf("%d\n", func_num &= 1 << (code + 5));\
     if (func_num &= 1 << (code + 5))\
@@ -138,7 +138,33 @@ unsigned int SPU_Verify(struct SPU* spu)
         program\
         spu -> bin_buf = spu -> bin_buf + 1;\
     }\
+*/
 
+#define DEF_CMD(name, code, num_args, program) \
+    if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)) || func_num == int(1 << (code + 5)))\
+    {\
+        if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)))\
+        {\
+            printf("1)%s\n", #name);\
+            input_func = *(spu -> bin_buf + 1);\
+            program\
+            spu -> bin_buf = spu -> bin_buf + 2;\
+        }\
+        else\
+        {\
+            printf("1)%s\n", #name);\
+            input_func = *(spu -> bin_buf + 1);\
+            input_func = spu -> args[input_func];\
+            program\
+            spu -> bin_buf = spu -> bin_buf + 2;\
+        }\
+    }\
+    else if (code == func_num)\
+    {\
+        printf("2)%s\n", #name);\
+        program\
+        spu -> bin_buf = spu -> bin_buf + 1;\
+    }\
 
 
 void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* canary, struct SPU* spu)
@@ -148,16 +174,15 @@ void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* c
 
     int func_num = 0;
     int input_func = 0;
+    int* start_buf = spu -> bin_buf;
 
     while(func_num != CMD_HLT)
     {
+        SPU_DUMP(spu)
         func_num = *(spu -> bin_buf);
         #include "commands.h"
         /*else*/
-        {
-            spu -> SPU_err |= INCORRECT_COMAND;
-            break;
-        }
+
     }
     SPU_DUMP(spu)
 
