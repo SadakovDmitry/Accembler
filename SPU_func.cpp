@@ -143,21 +143,9 @@ unsigned int SPU_Verify(struct SPU* spu)
 #define DEF_CMD(name, code, num_args, program) \
     if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)) || func_num == int(1 << (code + 5)))\
     {\
-        if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)))\
-        {\
-            printf("1)%s\n", #name);\
-            input_func = *(spu -> bin_buf + 1);\
-            program\
-            spu -> bin_buf = spu -> bin_buf + 2;\
-        }\
-        else\
-        {\
-            printf("1)%s\n", #name);\
-            input_func = *(spu -> bin_buf + 1);\
-            input_func = spu -> args[input_func];\
-            program\
-            spu -> bin_buf = spu -> bin_buf + 2;\
-        }\
+        printf("1)%s\n", #name);\
+        program\
+        spu -> bin_buf = spu -> bin_buf + 2;\
     }\
     else if (code == func_num)\
     {\
