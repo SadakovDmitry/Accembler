@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include "stack.h"
 
-//#define DUMP_ON 1
+
 
 struct Stack* Stack_Ctor( int capacity, struct ERRORS* err, struct Canary* canary)
 {
@@ -87,7 +87,7 @@ int Stack_Push(struct Stack* stk, Elem_t val, struct Canary* canary)
     return 0;
 }
 
-int Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary)
+Elem_t Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary)
 {
     assert(stk);
     assert(canary);
@@ -125,7 +125,7 @@ int Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary)
         #endif
     }
 
-    return 0;
+    return *(Ret_val);
 }
 
 int Stack_Realloc(struct Stack* stk, struct Canary* canary )
@@ -410,7 +410,7 @@ int Cmp_two_str(char* input_str, char* answer)
         return 0;
     }
 }
-
+/*
 void Cycle_push(struct Stack* stk, Elem_t* val, struct Canary* canary)
 {
     assert(stk);
@@ -470,7 +470,7 @@ void Cycle_pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary)
         }
     }
 }
-
+*/
 unsigned int StackErr(struct Stack* stk, struct Canary* canary)
 {
     assert(stk);

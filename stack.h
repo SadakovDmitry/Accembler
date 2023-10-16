@@ -4,10 +4,13 @@ typedef unsigned long long canary_t;
 
 //#define CANARY_ON 1
 //#define HASH_ON 1
+#define DUMP_ON 1
+//#define SPU_DUMP_ON 1
 
 
 #define STACK_DUMP(stk, canary) Stack_Dump(stk, canary, (char*)__FILE__, __LINE__, __func__);
 #define stack_t "%d"
+#define stack_tt "%4d"
 
 
 #ifdef CANARY_ON
@@ -66,7 +69,6 @@ struct ERRORS
 
 
 
-
 void Put_canary(struct Stack* stk, struct Canary* canary);
 void Canareyca_Protection(struct Stack* stk, struct Canary* canary);
 int Hash_Protection(struct Stack* stk);
@@ -74,7 +76,7 @@ int Calculate_Hash(struct Stack* stk);
 struct Stack* Stack_Ctor( int capacity, struct ERRORS* ERR, struct Canary* canary);
 int Stack_Dtor(struct Stack* stk, struct Canary* canary);
 int Stack_Push(struct Stack* stk, Elem_t val, struct Canary* canary);
-int Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary);
+Elem_t Stack_Pop(struct Stack* stk, Elem_t* Ret_val, struct Canary* canary);
 int Stack_Dump(struct Stack* stk, struct Canary* canary, char* file , int line, const char* func);
 int Stack_Realloc(struct Stack* stk, struct Canary* canary);
 int Stack_Realloc_Press(struct Stack* stk, struct Canary* canary);
