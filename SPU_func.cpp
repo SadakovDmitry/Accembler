@@ -6,6 +6,7 @@
 #include "SPU_func.h"
 #include "stack.h"
 #include "Read_file.h"
+#include "Assembler_func.h"
 
 
 void SPU_Ctor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
@@ -68,6 +69,7 @@ void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
     printf("\n\nSPU   |file: %s \n      |in: %d row \n      |function: %s \n", file, line, func);
     printf("      |\t\t    rax  |  rbx  |  rcx  |  rdx  |\n");
     printf("      |Arguments: ");
+    //printf("      |now comand : %s\n", name);
     #endif
 
     if (spu -> SPU_err & ARGS_NULL)
@@ -109,39 +111,12 @@ unsigned int SPU_Verify(struct SPU* spu)
         spu -> SPU_err |= ARGS_NULL;
     }
 
-
     return spu -> SPU_err;
 }
 
-/*
-#define DEF_CMD(name, code, num_args, program) \
-    printf("%d\n", func_num &= 1 << (code + 5));\
-    if (func_num &= 1 << (code + 5))\
-    {\
-        printf("1)%s\n", #name);\
-        if (func_num &= 1 << (code + 6))\
-        {\
-            input_func = *(spu -> bin_buf + 1);\
-            program\
-        }\
-        else\
-        {\
-            input_func = *(spu -> bin_buf + 1);\
-            input_func = spu -> args[input_func];\
-            program\
-        }\
-        spu -> bin_buf = spu -> bin_buf + 2;\
-    }\
-    else if (code == func_num)\
-    {\
-        printf("2)%s\n", #name);\
-        program\
-        spu -> bin_buf = spu -> bin_buf + 1;\
-    }\
-*/
 
 #define DEF_CMD(name, code, num_args, program) \
-    if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)) || func_num == int(1 << (code + 5)))\
+    if (func_num == code + 64 || func_num == code + 32)\
     {\
         program\
         spu -> bin_buf = spu -> bin_buf + 2;\

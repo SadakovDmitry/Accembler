@@ -26,14 +26,14 @@ int main()
 
     spu.bin_buf = Work_with_bin_file(&ab_text, file);
 
+    /*
     for (int i = 0; i < ab_text.text_size; i++)
     {
         printf("%d ", *(spu.bin_buf + i));
     }
-
+    */
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
-
     SPU_Ctor(stk, &canary, &spu);
 
     Do_comands (&ab_text, stk, &canary, &spu);
