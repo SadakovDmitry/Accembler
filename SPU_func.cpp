@@ -82,7 +82,7 @@ void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
     {
         printf("\n\033[31mERROR\033[0m: INCORRECT COMAND!!! \n");
     }
-
+    #ifdef SPU_DUMP_ON
     if (spu -> args != NULL)
     {
         for (int i = 0; i < NUM_ARGS; i++)
@@ -90,7 +90,7 @@ void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
             printf(stack_tt"   |", spu -> args[i]);
         }
     }
-
+    #endif
 
     printf("\n");
     /*
@@ -143,16 +143,15 @@ unsigned int SPU_Verify(struct SPU* spu)
 #define DEF_CMD(name, code, num_args, program) \
     if (func_num == int(1 << (code + 5)) + int(1 << (code + 6)) || func_num == int(1 << (code + 5)))\
     {\
-        printf("1)%s\n", #name);\
         program\
         spu -> bin_buf = spu -> bin_buf + 2;\
     }\
     else if (code == func_num)\
     {\
-        printf("2)%s\n", #name);\
         program\
         spu -> bin_buf = spu -> bin_buf + 1;\
     }\
+    else
 
 
 void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* canary, struct SPU* spu)
@@ -166,10 +165,13 @@ void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* c
 
     while(func_num != CMD_HLT)
     {
-        SPU_DUMP(spu)
         func_num = *(spu -> bin_buf);
         #include "commands.h"
         /*else*/
+            {
+                spu -> SPU_err |= INCORRECT_COMAND;
+                break;
+            }
 
     }
     SPU_DUMP(spu)

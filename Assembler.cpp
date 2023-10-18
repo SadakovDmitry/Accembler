@@ -5,123 +5,152 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdlib.h>
+#include <time.h>
 
 #include "Read_file.h"
 #include "SPU_func.h"
 
 #undef DEF_CMD
 
+#define max(a, b) (((a) < (b)) ? (a) : (b))
+
 const int mask_push_reg = 0x60000000;
+int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf, int j, char* str);
+int Compilate(struct Labels* labels, struct SPU* spu, int Num_rows, int num_compil, FILE* file, int* bin_buf);
 
-/*
-void Read_func_input(int num_args, int arg_type, int* bin_buf, int j, FILE* file);
 
-void Read_func_input(int code, int arg_type, int* bin_buf, int j, FILE* file)
+int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf, int j, char* str)
 {
+    int arg = 0;
+    char arg_str[10] = "";
+    char simbol_a = 'a';
 
-    switch(
-    *(bin_buf + j) |= 1 << code;
-    *(bin_buf + j) |= 1 << code
-
-
-}
-
-void Read_func_input(int num_args, int arg_type, int* bin_buf, int j, FILE* file)
-{
-        char simbol_a = 'a';
-        char arg[4] = "";
-        switch (args)
+    switch(args)
+    {
+    case 1:
+        switch (fscanf(file, "%d", &arg))
         {
-        case 2:
-            fscanf(file, "%s", arg);
-            *(bin_buf + j) = num_of_comand;
+        case 1:
+            *(bin_buf + j) |= 1 << (code + 5);
+            *(bin_buf + j) |= 1 << (code + 6);
+            *(bin_buf + j + 1) = arg;
+            break;
+        case 0:
+            fscanf(file, "%s", arg_str);
+            *(bin_buf + j) |= 1 << (code + 5);
 
-            if (strncmp(arg, "rax", 3) == 0 || strncmp(arg, "rbx", 3) == 0 || strncmp(arg, "rcx", 3) == 0 || strncmp(arg, "rdx", 3) == 0)
+            if (strchr(arg_str,':') != NULL)
             {
-                *(bin_buf + j + 1) = 2;
-                *(bin_buf + j + 2) = (int) (arg[1]) - (int) simbol_a;
+                printf("--------------OK\n");
+                for(int k = 0; k < 10; k++)
+                {
+                    printf("oh\n");
+                    if (strncmp(labels[k].point_name, arg_str, max(strlen(str), strlen(labels[k].point_name))) == 0)
+                    {
+                    *(bin_buf + j + 1) = labels[k].ip;
+                    printf("---------in def : point = %s, ip = %d\n", labels[k].point_name, labels[k].ip);
+                    break;
+                    }
+                }
+                *(bin_buf + j) |= 1 << (code + 6);
             }
             else
             {
-                if (atoi(arg) == 0)
-                {
-                    spu.SPU_err |= INCORRECT_INPUT;
-                }
-                *(bin_buf + j + 1) = 1;
-                *(bin_buf + j + 2) = atoi(arg);
+                *(bin_buf + j + 1) = (int) (arg_str[1]) - (int) simbol_a;
             }
-
-            j = j + 3;
-
-            break;
-        case 1:
-            fscanf(file, "%s", arg);
-            if (arg_type == 1)
-            {
-                if (!(strncmp(arg, "rax", 3) == 0 || strncmp(arg, "rbx", 3) == 0 || strncmp(arg, "rcx", 3) == 0 || strncmp(arg, "rdx" 3) == 0))\
-                {
-                    spu.SPU_err |= INCORRECT_INPUT;
-                }
-                *(bin_buf + j) = num_of_comand;
-                *(bin_buf + j + 1) = (int) (arg[1]) - (int) simbol_a;
-            }
-            else{
-                *(bin_buf + j) = num_of_comand;
-                *(bin_buf + j + 1) = atoi(arg);
-            }
-            j = j + 2;
-
-            break;
-        default:
-            *(bin_buf + j) = num_of_comand;
-            j++;
         }
+        j = j + 2;
+        break;
+    case 0:
+        *(bin_buf + j) = code;
+        j++;
+        break;
+    }
+    return j;
 }
-*/
 
 #define DEF_CMD(name, code, args, ...)                              \
-    if (str[0] == ':')                                              \
+    if (strchr(str,':') != NULL)                                    \
     {                                                               \
-        spu.labels[str[1] - 'O'] = j;                               \
-        fprintf(stderr,"j = %d\n", spu.labels[str[1] - 'O']);                              \
+        if(num_compil == 1)                                         \
+        {                                                           \
+        int len = strlen(str);                                      \
+        char* point_ip = (char*) calloc(len + 1, sizeof (char));    \
+        labels[point].point_name = strncpy(point_ip, str, len);     \
+        labels[point].ip = j;                                       \
+        printf("j = %d\npointer = %d\n", j, point);                 \
+        printf("--in def : point = %s, ip = %d\n", labels[point].point_name, labels[point].ip);\
+        point++;                                                    \
+        }                                                           \
     }                                                               \
     else if (strcasecmp(str, #name) == 0)                           \
     {                                                               \
-        int arg = 0;                                                \
-        char arg_str[4] = "";                                       \
-        char simbol_a = 'a';                                        \
-                                                                    \
-        switch(args)                                                \
+        switch(num_compil)                                          \
         {                                                           \
-        case 1:                                                     \
-            switch (fscanf(file, "%d", &arg))                       \
-            {                                                       \
-            case 1:                                                 \
-                *(bin_buf + j) |= 1 << (code + 5);                  \
-                *(bin_buf + j) |= 1 << (code + 6);                  \
-                *(bin_buf + j + 1) = arg;                           \
-                break;                                              \
-            case 0:                                                 \
-                fscanf(file, "%s", arg_str);                        \
-                *(bin_buf + j) |= 1 << (code + 5);                  \
-                if (arg_str[0] == ':')                              \
-                {                                                   \
-                    *(bin_buf + j + 1) = spu.labels[arg_str[1] - 'O'];  \
-                }                                                   \
-                else                                                \
-                {                                                   \
-                    *(bin_buf + j + 1) = (int) (arg_str[1]) - (int) simbol_a;\
-                }                                                   \
-            }                                                       \
-            j = j + 2;                                              \
+        case 2:                                                     \
+            printf("2) j = %d\n", j);                               \
+            printf("str = %s\n", str);                              \
+            printf("==in def : point = %s, ip = %d\n", labels[0].point_name, labels[0].ip);\
+            printf("==in def : point = %s, ip = %d\n", labels[1].point_name, labels[1].ip);\
+            j = Read_func(labels, code, args, file, bin_buf, j, str);\
+            printf("2) j = %d\n", j);                               \
             break;                                                  \
-        case 0:                                                     \
-            *(bin_buf + j) = code;                                  \
-            j++;                                                    \
+        case 1:                                                     \
+            for (int k = 0; k < args; k++)                          \
+            {                                                       \
+                fscanf(file, "%s", str);                            \
+            }                                                       \
+            j = j + args + 1;                                       \
+            printf("//in def : point = %s, ip = %d\n", labels[0].point_name, labels[0].ip);\
+            printf("//in def : point = %s, ip = %d\n", labels[1].point_name, labels[1].ip);\
+                                                                    \
+            printf("1)%s j = %d\n", #name,  j);                     \
             break;                                                  \
         }                                                           \
     }                                                               \
     else
+
+
+
+int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compil, FILE* file, int* bin_buf)
+{
+    int point = 0;
+    int j = 0;
+    char str[10] = "";
+
+    for (int i = 0; i < Num_rows + 1; i++)
+    {
+        printf("<>\n");
+        printf("in def : point = %s, ip = %d\n", labels[0].point_name, labels[0].ip);
+        printf("in def : point = %s, ip = %d\n", labels[1].point_name, labels[1].ip);
+        fscanf(file, "%s", str);
+        #include "commands.h"
+        /*else*/
+        {
+            spu -> SPU_err |= INCORRECT_COMAND;
+            printf("suka \n");
+            break;
+        }
+    }
+    return j;
+}
+
+/*
+#define DEF_CMD(name, code, args, ...)                              \
+    if (strchr(str,':') != NULL)                                    \
+    {                                                               \
+        labels[point].point_name = str;                             \
+        labels[point].ip = j;                                       \
+        point++;                                                    \
+    }                                                               \
+    else if (strcasecmp(str, #name) == 0)                           \
+    {                                                               \
+        j = j + args + 1;                                           \
+    }                                                               \
+    else
+*/
+
+
 
 
 
@@ -138,23 +167,27 @@ int main()
     FILE* file = fopen("Text_comands.txt", "r");
 
     assert(file != NULL);
-    spu.labels = (int*) calloc (10, sizeof(int));
+    printf("size = %lu\n", sizeof(struct Labels));
+    struct Labels* labels = (struct Labels*) calloc (10, sizeof(struct Labels));
+    //int point = 0;
+
     int* bin_buf = (int*) calloc (Num_rows * 10, sizeof(int));
-    int j = 0;
-    char str[5] = "";
-    printf("%d\n", Num_rows);
-
-    for (int i = 0; i < Num_rows + 1; i++)
+    //int j = 0;
+    //char str[5] = "";
+    printf("-------------------------------------------------------------------------------------\n");
+            Compilate(labels, &spu, Num_rows, 1, file, bin_buf);
+    printf("-------------------------------------------------------------------------------------\n");
+    for (int i = 0; i < 10; i++)
     {
-        fscanf(file, "%s", str);
-        #include "commands.h"
-        /*else*/
-        {
-            spu.SPU_err |= INCORRECT_COMAND;
-            break;
-        }
-
+        printf("point = %s, ip = %d\n", labels[i].point_name, labels[i].ip);
     }
+    printf("-------------------------------------------------------------------------------------\n");
+    rewind(file);
+
+    int j = Compilate(labels, &spu, Num_rows, 2, file, bin_buf);
+
+    printf("-------------------------------------------------------------------------------------\n");
+
     for (int i = 0; i < j; i++)
     {
         printf("%d ", *(bin_buf + i));
