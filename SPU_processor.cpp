@@ -25,12 +25,12 @@ int main()
     FILE* file = fopen("code_bin.bin", "rb");
 
     spu.bin_buf = Work_with_bin_file(&ab_text, file);
-    /*
+
     for (int i = 0; i < ab_text.text_size; i++)
     {
         printf("%d ", *(spu.bin_buf + i));
     }
-    */
+
 
     struct Stack* stk = Stack_Ctor( capacity, &ERR, &canary);
 
