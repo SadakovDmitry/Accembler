@@ -14,7 +14,10 @@ struct About_str{
     int len;
 };
 
-
+struct Labels {
+        char* point_name;
+        int ip;
+};
 
 struct SPU{
     int* bin_buf;

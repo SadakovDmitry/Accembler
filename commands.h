@@ -6,8 +6,18 @@
 
 DEF_CMD (ZERO, 0, 0, {if (0) {}})
 
-DEF_CMD (PUSH, 1, 2,
+DEF_CMD (PUSH, 1, 1,
     {
+    if (func_num == int(1 << (6)) + int(1 << (7)))
+        {
+            input_func = *(spu -> bin_buf + 1);
+        }
+    else
+        {
+            input_func = *(spu -> bin_buf + 1);
+            input_func = spu -> args[input_func];
+        }
+
     DO_PUSH(input_func * accuracy)
     })
 
@@ -83,8 +93,8 @@ DEF_CMD (IN  , 10, 0,
 DEF_CMD (POP , 11, 1,
     {
     Elem_t val = 0;
-
-    *(spu -> args + arg_type) = DO_POP / accuracy;
+    input_func = *(spu -> bin_buf + 1);
+    *(spu -> args + input_func) = DO_POP / accuracy;
     })
 
 DEF_CMD (HLT, -1, 0,
@@ -98,5 +108,84 @@ DEF_CMD(NOT, 12, 0,
 
     DO_PUSH(DO_POP * -1)
     })
+
+DEF_CMD(JMP, 13, 1,
+    {
+        input_func = *(spu -> bin_buf + 1);
+        spu -> bin_buf = start_buf + input_func - 2;
+    })
+DEF_CMD(JB, 15, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP < DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+
+DEF_CMD(JA, 17, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP > DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+
+DEF_CMD(JAE, 18, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP >= DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+
+DEF_CMD(JBE, 20, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP <= DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+
+DEF_CMD(JE, 22, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP == DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+
+DEF_CMD(JNE, 24, 1,
+    {
+        Elem_t val = 0;
+        input_func = *(spu -> bin_buf + 1);
+        if(DO_POP != DO_POP)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+/*
+DEF_CMD(JM, 24, 1,
+    {
+        Elem_t val = 0;
+        long int ttime = 0;
+        ttime = time(NULL);
+        struct tm* now_tm = localtime(&ttime);
+        input_func = *(spu -> bin_buf + 1);
+        if(now_tm -> tm_wday == 1)
+        {
+            spu -> bin_buf = start_buf + input_func - 2;
+        }
+    })
+*/
 
 
