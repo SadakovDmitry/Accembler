@@ -1,91 +1,26 @@
         in
         pop rax
-        in
+        push 1
         pop rbx
-        in
+        push 1
         pop rcx
+        call Fact:
 
-        push rax
-        push 0
-        je Line:
-
-        push 4
-        push rax
+Fact:
         push rcx
-        mul
-        mul
         push rbx
-        push rbx
-        mul
-        sub
-        pop rdx
-        push rdx
-        push 0
-        push rdx
-        push 0
-        jb Two_eq:
-        je One_eq:
-
-No_or_inf:
-        push rcx
-        push 0
-        je Inf:
-
-        push 0
-        out
-        jmp Stop:
-
-One_eq:
-        push 2
-        push rax
-        mul
-        push rbx
-        not
-        div
-        out
-        jmp Stop:
-
-Two_eq:
-        throw
-        throw
-        push rdx
-        sqrt
-        pop rdx
-        push 2
-        push rax
-        mul
-        push rdx
-        push rbx
-        not
-        sub
-        div
-        out
-
-        push 2
-        push rax
-        mul
-        push rdx
-        push rbx
-        not
+        push 1
         add
-        div
-        out
-        jmp Stop:
-
-Line:
+        pop rbx
         push rbx
-        push 0
-        je No_or_inf:
+        mul
+        pop rcx
+        push rax
         push rbx
-        push rcx
-        not
-        div
-        out
-        jmp Stop:
+        jae Stop:
+        call Fact:
 
-Inf:
-        push -8
-        out
 Stop:
+        push rcx
+        out
         hlt
-
