@@ -1,19 +1,91 @@
-        push 1
+        in
         pop rax
-Next:
-        push 10
-        push rax
-        ja Stop:
+        in
+        pop rbx
+        in
+        pop rcx
 
         push rax
+        push 0
+        je Line:
+
+        push 4
+        push rax
+        push rcx
+        mul
+        mul
+        push rbx
+        push rbx
+        mul
+        sub
+        pop rdx
+        push rdx
+        push 0
+        push rdx
+        push 0
+        jb Two_eq:
+        je One_eq:
+
+No_or_inf:
+        push rcx
+        push 0
+        je Inf:
+
+        push 0
+        out
+        jmp Stop:
+
+One_eq:
+        push 2
         push rax
         mul
+        push rbx
+        not
+        div
+        out
+        jmp Stop:
+
+Two_eq:
+        throw
+        throw
+        push rdx
+        sqrt
+        pop rdx
+        push 2
+        push rax
+        mul
+        push rdx
+        push rbx
+        not
+        sub
+        div
         out
 
+        push 2
         push rax
-        push 1
+        mul
+        push rdx
+        push rbx
+        not
         add
-        pop rax
-        jmp Next:
+        div
+        out
+        jmp Stop:
+
+Line:
+        push rbx
+        push 0
+        je No_or_inf:
+        push rbx
+        push rcx
+        not
+        div
+        out
+        jmp Stop:
+
+Inf:
+        push -8
+        out
 Stop:
         hlt
+
