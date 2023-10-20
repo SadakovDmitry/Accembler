@@ -1,10 +1,4 @@
-        in
-        pop rax
-        push 1
-        pop rbx
-        push 1
-        pop rcx
-        call Fact:
+        jmp main:
 
 Fact:
         push rcx
@@ -15,12 +9,23 @@ Fact:
         push rbx
         mul
         pop rcx
-        push rax
         push rbx
-        jae Stop:
+        push rax
+        ja Contin:
+        ret
+Contin:
+        call Fact:
+        ret
+
+main:
+        in
+        pop rax
+        push 1
+        pop rbx
+        push 1
+        pop rcx
         call Fact:
 
-Stop:
         push rcx
         out
         hlt
