@@ -41,6 +41,20 @@ int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf
                 }
                 *(bin_buf + j) += ARG_TYPE_INT;
             }
+            else if (strchr(arg_str,'[') != NULL and strchr(arg_str,']') != NULL)
+            {
+                *(bin_buf + j) += ARG_TYPE_TO_RAM;
+                if (strncmp(arg_str + 1, "rax", 3) == 0 || strncmp(arg_str + 1, "rbx", 3) == 0 || strncmp(arg_str + 1, "rcx", 3) == 0 || strncmp(arg_str + 1, "rdx", 3) == 0)
+                {
+                    *(bin_buf + j) += ARG_TYPE_STR;
+                    *(bin_buf + j + 1) = (int) (arg_str[2]) - (int) simbol_a;
+                }
+                else
+                {
+                    *(bin_buf + j) += ARG_TYPE_INT;
+                    *(bin_buf + j + 1) = atoi(arg_str + 1);
+                }
+            }
             else
             {
                 *(bin_buf + j) += ARG_TYPE_STR;
@@ -58,7 +72,7 @@ int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf
 }
 
 //________________________________________________________________________________________________________________
-
+                                                                                //// sdelay menche define
 #define DEF_CMD(name, code, args, ...)                              \
     if (strchr(str,':') != NULL)                                    \
     {                                                               \
@@ -95,22 +109,32 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
 {
     int point = 0;
     int j = 0;
-    char str[10] = "";
+    char str[20] = "";
 
     for (int i = 0; i < Num_rows + 1; i++)
     {
-        fscanf(file, "%s", str);
+        fscanf(file, "%s", str); //ду хаст  len check
         #include "commands.h"
 
-        {
+        /* else */ {
             spu -> SPU_err |= INCORRECT_COMAND;
             break;
         }
+
+        if (spu -> SPU_err != 0)
+        {
+            SPU_DUMP(spu)
+            printf("      |error command on %d str\n", i);
+        }
+        else
+        {
+        #ifdef SPU_DUMP_ON
+            SPU_DUMP(spu)
+            printf("      |now command on %d str\n", i);
+        #endif
+        }
     }
-    if (spu -> SPU_err != 0)
-    {
-        SPU_DUMP(spu)
-    }
+
     return j;
 }
 

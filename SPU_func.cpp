@@ -62,15 +62,13 @@ void SPU_Dtor(struct Stack* stk, struct Canary* canary, struct SPU* spu)
 
 void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
 {
-    //assert(stk);
-    //assert(canary);
     assert(spu);
-    #ifdef SPU_DUMP_ON
+
     printf("\n\nSPU   |file: %s \n      |in: %d row \n      |function: %s \n", file, line, func);
     printf("      |\t\t    rax  |  rbx  |  rcx  |  rdx  |\n");
     printf("      |Arguments: ");
-    //printf("      |now comand : %s\n", name);
-    #endif
+    //printf("      |now comand : push 1 pop rax  push 11 push rax ja Stop: push rax push rax mul out push rax push 1 add pop rax jmp Next: hlt);
+
 
     if (spu -> SPU_err & ARGS_NULL)
     {
@@ -82,9 +80,8 @@ void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
     }
     if (spu -> SPU_err & INCORRECT_COMAND)
     {
-        printf("\n\033[31mERROR\033[0m: INCORRECT COMAND!!! \n");
+        printf("\n\033[31mERROR\033[0m: INCORRECT COMMAND!!! \n");
     }
-    #ifdef SPU_DUMP_ON
     if (spu -> args != NULL)
     {
         for (int i = 0; i < NUM_ARGS; i++)
@@ -92,7 +89,6 @@ void SPU_Dump(struct SPU* spu, char* file , int line, const char* func)
             printf(stack_tt"   |", spu -> args[i]);
         }
     }
-    #endif
 
     printf("\n");
     /*
@@ -114,22 +110,18 @@ unsigned int SPU_Verify(struct SPU* spu)
     return spu -> SPU_err;
 }
 
+//func_num & (UINT32_MAX ^ (128 | 64 | 32))
 
 #define DEF_CMD(name, code, num_args, program) \
-    if (func_num == code + 64 || func_num == code + 32)\
+    if (func_num == (code | 128 | 64) || func_num == (code | 128 | 32) || func_num == (code | 64) || func_num == (code | 32) || func_num == code)\
     {\
         program\
-        spu -> bin_buf = spu -> bin_buf + 2;\
-    }\
-    else if (code == func_num)\
-    {\
-        program\
-        spu -> bin_buf = spu -> bin_buf + 1;\
+        spu -> bin_buf = spu -> bin_buf + num_args + 1;\
     }\
     else
 
 
-void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* canary, struct SPU* spu)
+void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Stack* stk_calls, struct Canary* canary, struct SPU* spu)
 {
     assert(ab_text != NULL);
     assert(spu -> bin_buf != NULL);
@@ -137,19 +129,34 @@ void Do_comands (struct About_text* ab_text, struct Stack* stk, struct Canary* c
     int func_num = 0;
     int input_func = 0;
     int* start_buf = spu -> bin_buf;
+    //char* name_func = (char*) calloc (10, sizeof(char));
 
     while(func_num != CMD_HLT)
     {
         func_num = *(spu -> bin_buf);
         #include "commands.h"
         /*else*/
-            {
-                spu -> SPU_err |= INCORRECT_COMAND;
-                break;
-            }
+        {
+            spu -> SPU_err |= INCORRECT_COMAND;
+            break;
+        }
 
+        if (spu -> SPU_err != 0)
+        {
+            SPU_DUMP(spu)
+            printf("      |now command : %ld\n", (spu -> bin_buf - start_buf));
+        }
+        else
+        {
+        #ifdef SPU_DUMP_ON
+            SPU_DUMP(spu)
+            printf("      |now command : %ld\n",( spu -> bin_buf - start_buf));
+        #endif
+        }
+        //Print_VRAM(spu, SIZE_OF_RAM);
+        //printf("\n\n\n");
+        //getchar();
     }
-    SPU_DUMP(spu)
 
     #undef DEF_CMD
 }
