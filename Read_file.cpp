@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+//#include <conio.h>
 #include <sys/stat.h>
 #include "Read_file.h"
 //#include "enum_commands.h"
@@ -182,5 +183,53 @@ void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu)
 }
 
 
+void Print_RAM(struct SPU* spu, int size_of_RAM)
+{
+    FILE* RAM_txt = fopen("RAM.txt", "w");
+
+    int len_of_row = 200;
+    int num_of_rows = (int) size_of_RAM / len_of_row;
+
+    for (int i = 0; i < num_of_rows; i++)
+    {
+        for (int j = 0; j < len_of_row; j++)
+        {
+            fprintf(RAM_txt, "%4d ",*(spu -> RAM + j + i * len_of_row));
+            //printf("%4d ",*(spu -> RAM + j + i * len_of_row));
+        }
+        fprintf(RAM_txt, "\n");
+        //printf("\n");
+    }
+    fclose(RAM_txt);
+}
 
 
+
+void Print_VRAM(struct SPU* spu, int size_of_RAM)
+{
+    int len_of_row = 200;
+    int num_of_rows = (int) size_of_RAM / len_of_row;
+    char colour[10] = "";
+
+    for (int i = 0; i < num_of_rows; i++)
+    {
+        for (int j = 0; j < len_of_row; j = j + 2)
+        {
+            //"[\033[32m %lf \033[0m]"
+            //snprintf(colour, strlen(colour), "%d", *(spu -> RAM + j + i * len_of_row + 1));
+            //set_colour(*(spu -> RAM + j + i * len_of_row + 1))
+            //textcolour(*(spu -> RAM + j + i * len_of_row));
+            printf("%c ", (char) *(spu -> RAM + j + i * len_of_row));
+        }
+        printf("\n");
+    }
+}
+
+
+void Print_bin_buf(int* bin_buf, int size_bin_buf)
+{
+    for (int i = 0; i < size_bin_buf; i++)
+    {
+        printf ("%d ", *(bin_buf + i));
+    }
+}

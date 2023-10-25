@@ -20,6 +20,7 @@ struct Labels {
 };
 
 struct SPU{
+    Elem_t* RAM;
     int* bin_buf;
     Elem_t* args;
     unsigned int SPU_err;
@@ -43,3 +44,6 @@ enum Comands Convert_to_numbers(struct About_str* ab_str, char * now_comand, int
 int Convert_to_comands(struct SPU* spu, FILE* output_file);
 void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu);
 int* Work_with_bin_file(struct About_text* ab_text, FILE* file);
+void Print_RAM(struct SPU* spu, int size_of_RAM );
+void Print_bin_buf(int* bin_buf, int size_bin_buf);
+void Print_VRAM(struct SPU* spu, int size_of_RAM);
