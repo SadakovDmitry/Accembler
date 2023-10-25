@@ -1,95 +1,60 @@
- in
-        pop rax
+        push 5050
         in
         pop rbx
-        in
+        pop rax
+        push 0
         pop rcx
 
-        push rax
-        push 0
-        je Line:
+Circle:
+        push 2
+        push rcx
+        rem
+        push 1
+        je Print:
+
+        push 200
+        push rcx
+        div
+        push 50
+        sub
+        push 200
+        push rcx
+        div
+        push 50
+        sub
+        mul
 
         push 4
-        push rax
+        push 200
         push rcx
-        mul
-        mul
-        push rbx
-        push rbx
-        mul
+        rem
+        push 100
         sub
-        pop rdx
-        push rdx
-        push 0
-        push rdx
-        push 0
-        jb Two_eq:
-        je One_eq:
-
-No_or_inf:
+        push 200
         push rcx
-        push 0
-        je Inf:
-
-        push 0
-        out
-        jmp Stop:
-
-One_eq:
-        push 2
-        push rax
-        mul
-        push rbx
-        not
-        div
-        out
-        jmp Stop:
-
-Two_eq:
-        throw
-        throw
-        push rdx
-        sqrt
-        pop rdx
-        push 2
-        push rax
-        mul
-        push rdx
-        push rbx
-        not
+        rem
+        push 100
         sub
-        div
-        out
-
-        push 2
-        push rax
         mul
-        push rdx
-        push rbx
-        not
+        div
         add
-        div
-        out
-        jmp Stop:
 
-Line:
         push rbx
-        push 0
-        je No_or_inf:
         push rbx
+        mul
+        push 46
+        pop [rcx]
+        jb Print:
+        push 36
+        pop [rcx]
+
+Print:
         push rcx
-        not
-        div
-        out
-        jmp Stop:
+        push 1
+        add
+        pop rcx
 
-Inf:
-        push 73
-        outc
-        push 78
-        outc
-        push 70
-        outc
-
-Stop:
+        push 20000
+        push rcx
+        jb Circle:
         hlt
