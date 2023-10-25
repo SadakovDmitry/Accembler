@@ -44,7 +44,7 @@ int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf
             else if (strchr(arg_str,'[') != NULL and strchr(arg_str,']') != NULL)
             {
                 *(bin_buf + j) += ARG_TYPE_TO_RAM;
-                if (strncmp(arg_str + 1, "rax", 3) == 0 || strncmp(arg_str + 1, "rbx", 3) == 0 || strncmp(arg_str + 1, "rcx", 3) == 0 || strncmp(arg_str + 1, "rdx", 3) == 0)
+                if (arg_str[1] == 'r' && arg_str[3] == 'x' && 'a' <= arg_str[2] && arg_str[2] <= 'd')
                 {
                     *(bin_buf + j) += ARG_TYPE_STR;
                     *(bin_buf + j + 1) = (int) (arg_str[2]) - (int) simbol_a;
@@ -71,21 +71,30 @@ int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf
     return j;
 }
 
+int check_len_str (FILE* file)
+{
+    int len = 0;
+    char input = 0;
+
+    while ((input = fgetc(file)) == ' ')
+        ;
+
+    while ((input = fgetc(file)) != ' ')
+    {
+        len++;
+        printf("%c\n", input);
+    }
+    printf("len = %d\n", len);
+    return len + 1;
+}
+
+
 //________________________________________________________________________________________________________________
-                                                                                //// sdelay menche define
+                                                                                // sdelay menche define
+
+
 #define DEF_CMD(name, code, args, ...)                              \
-    if (strchr(str,':') != NULL)                                    \
-    {                                                               \
-        if(num_compil == FIRST_COMPILATION)                         \
-        {                                                           \
-        int len = strlen(str);                                      \
-        char* point_ip = (char*) calloc(len + 1, sizeof (char));    \
-        labels[point].point_name = strncpy(point_ip, str, len + 1); \
-        labels[point].ip = j;                                       \
-        point++;                                                    \
-        }                                                           \
-    }                                                               \
-    else if (strcasecmp(str, #name) == 0)                           \
+    if (strcasecmp(str, #name) == 0)                                \
     {                                                               \
         switch(num_compil)                                          \
         {                                                           \
@@ -109,11 +118,55 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
 {
     int point = 0;
     int j = 0;
-    char str[20] = "";
+    char str[1000] = "";
 
     for (int i = 0; i < Num_rows + 1; i++)
     {
-        fscanf(file, "%s", str); //ду хаст  len check
+        //int len_str  = check_len_str(file);
+        //char* str = (char*) calloc(len_str + 1, sizeof(char));
+
+        fscanf(file, "%s", str);                     //ду хаст  len check
+
+        if (strchr(str,':') != NULL)                                            //print cheres
+        {
+            if(num_compil == FIRST_COMPILATION)
+            {
+            int len = strlen(str);
+            char* point_ip = (char*) calloc(len + 1, sizeof (char));
+            labels[point].point_name = strncpy(point_ip, str, len + 1);
+            labels[point].ip = j;
+            point++;
+            }
+            continue;
+        }
+        /*
+        switch (num_compil)
+        {
+        case SECOND_COMPILATION:
+            #undef DEF_CMD
+            #define DEF_CMD(name, code, args, ...)                              \
+                if (strcasecmp(str, #name) == 0)                                \
+                {                                                               \
+                    j = Read_func(labels, code, args, file, bin_buf, j, str);   \
+                }                                                               \
+                else
+            break;
+
+        case FIRST_COMPILATION:
+            #undef DEF_CMD
+            #define DEF_CMD(name, code, args, ...)                              \
+                if (strcasecmp(str, #name) == 0)                                \
+                {                                                               \
+                    for (int k = 0; k < args; k++)                              \
+                    {                                                           \
+                        fscanf(file, "%s", str);                                \
+                    }                                                           \
+                    j = j + args + 1;                                           \
+                }                                                               \
+                else
+            break;
+        }
+        */
         #include "commands.h"
 
         /* else */ {
