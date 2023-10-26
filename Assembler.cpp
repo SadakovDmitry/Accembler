@@ -11,7 +11,7 @@
 #include "Assembler_func.h"
 
 #undef DEF_CMD
-#define assembler_file "Square_eq.txt" //"Square_eq.txt" "Text_comands.txt" "Factorial.txt"
+#define assembler_file "Text_comands.txt" //"Square_eq.txt" "Text_comands.txt" "Factorial.txt"
 
 int main()
 {
@@ -31,9 +31,11 @@ int main()
     struct Labels* labels = (struct Labels*) calloc ( NUM_OF_LABELS, sizeof(struct Labels));
     int* bin_buf = (int*) calloc (Num_rows * 2, sizeof(int));
 
-                    Compilate (labels, &spu, Num_rows, FIRST_COMPILATION, file, bin_buf);
+    //               Compilate (labels, &spu, Num_rows, FIRST_COMPILATION, file, bin_buf);
+    First_compil(labels, Num_rows, file);
     rewind (file);
-    int size_buf =  Compilate (labels, &spu, Num_rows, SECOND_COMPILATION, file, bin_buf);
+    //int size_buf =  Compilate (labels, &spu, Num_rows, SECOND_COMPILATION, file, bin_buf);
+    int size_buf = Second_compil(labels, &spu, Num_rows, file, bin_buf);
 
     //Print_bin_buf(bin_buf, size_buf);
 

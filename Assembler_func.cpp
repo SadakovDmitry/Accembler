@@ -10,54 +10,84 @@
 #include "Assembler_func.h"
 
 
-int Read_arg(struct Labels* labels,int code, int num_args, FILE* file, int* bin_buf, int pos, char* str)
+int Read_arg(struct Labels* labels, struct SPU* spu, int code, int num_args, FILE* file, int* bin_buf, int pos)
 {
     int arg = 0;
     char arg_str[SIZE_STR] = "";
     char simbol_a = 'a';
 
+    *(bin_buf + pos) = code;
+
     switch(num_args)
     {
-    case 1:
-        *(bin_buf + pos) = code;
-        switch (fscanf(file, "%d", &arg))
-        {
-        case READ_THE_NUMBER:
-            pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, arg);
-            break;
-
-        case READ_THE_STR:
-            fscanf(file, "%s", arg_str);
-
-            if (strchr(arg_str,':') != NULL)
-            {
-                int label_val = Find_label(labels, bin_buf + pos, arg_str);
-                pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, label_val);
-            }
-            else if (strchr(arg_str,'[') != NULL and strchr(arg_str,']') != NULL)
-            {
-                *(bin_buf + pos) += ARG_TYPE_TO_RAM;
-                if (arg_str[1] == 'r' && arg_str[3] == 'x' && 'a' <= arg_str[2] && arg_str[2] <= 'd')
-                {
-                    pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_STR, (int) (arg_str[2]) - (int) simbol_a);
-                }
-                else
-                {
-                    pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, atoi(arg_str + 1));
-                }
-            }
-            else
-            {
-                pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_STR, (int) (arg_str[1]) - (int) simbol_a);
-            }
-        }
+    case ONE_ARG:
+        pos = Read_command_with_one_args( labels, spu, file, bin_buf, pos);
         break;
-    case 0:
-        *(bin_buf + pos) = code;
-        pos++;
+
+    case NO_ARGS:
+        pos = Read_command_with_no_args(pos);
         break;
     }
     return pos;
+}
+
+
+int Read_command_with_no_args(int pos)
+{
+    pos++;
+
+    return pos;
+}
+
+
+int Read_command_with_one_args(struct Labels* labels, struct SPU* spu, FILE* file, int* bin_buf, int pos)
+{
+    int arg = 0;
+    char arg_str[SIZE_STR] = "";
+
+    switch (fscanf(file, "%d", &arg))
+    {
+    case READ_THE_NUMBER:
+        pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, arg);
+        break;
+
+    case READ_THE_STR:
+        fscanf(file, "%s", arg_str);
+
+        if (strchr(arg_str,':') != NULL)
+        {
+            int label_val = Find_label(labels, bin_buf + pos, arg_str);
+            pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, label_val);
+        }
+           else if (strchr(arg_str,'[') != NULL and strchr(arg_str,']') != NULL)
+        {
+            *(bin_buf + pos) += ARG_TYPE_TO_RAM;
+            if (!Processing_arg(arg_str, bin_buf, &pos))
+            {
+                pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, atoi(arg_str + 1));
+            }
+        }
+        else if (!Processing_arg(arg_str - 1, bin_buf, &pos))
+        {
+           spu -> SPU_err |= INCORRECT_INPUT;
+        }
+    }
+
+    return pos;
+}
+
+
+int Processing_arg(char* arg_str, int* bin_buf, int* pos)
+{
+    if (arg_str[1] == 'r' && arg_str[3] == 'x' && 'a' <= arg_str[2] && arg_str[2] <= 'd')
+    {
+        *(pos) = Push_to_bin_buf(bin_buf, *(pos), ARG_TYPE_STR, (int) (arg_str[2]) - 'a');
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 
@@ -97,35 +127,98 @@ int Find_label(struct Labels* labels, int* bin_buf, char* arg_str)
 }
 
 
-int check_len_str (FILE* file)
+void First_compil(struct Labels* labels, int Num_rows, FILE* file)
 {
-    int len = 0;
-    char input = 0;
+    int point = 0;
+    int position = 0;
+    char str[SIZE_STR] = "";
 
-    while ((input = fgetc(file)) == ' ')
-        ;
-
-    while ((input = fgetc(file)) != ' ')
+    for (int i = 0; i < Num_rows + 1; i++)
     {
-        len++;
-        printf("%c\n", input);
+
+        fscanf(file, "%s", str);
+
+        if (strchr(str,':') != NULL)                                            //print cheres
+        {
+            point = Put_label(labels, str, position, point);
+            continue;
+        }
+
+        #define DEF_CMD(name, code, args, ...)                              \
+            if (strcasecmp(str, #name) == 0)                                \
+            {                                                               \
+                for (int i = 0; i < args; i++)                              \
+                {                                                           \
+                    fscanf(file, "%s", str);                                \
+                }                                                           \
+                position = position + args + 1;                             \
+            }
+
+
+        #include "commands.h"
+
+        #undef DEF_CMD
     }
-    printf("len = %d\n", len);
-    return len + 1;
+}
+
+
+int Second_compil(struct Labels* labels,struct SPU* spu, int Num_rows, FILE* file, int* bin_buf)
+{
+    int point = 0;
+    int position = 0;
+    char str[SIZE_STR] = "";
+
+    for (int i = 0; i < Num_rows + 1; i++)
+    {
+
+        fscanf(file, "%s", str);
+
+        #define DEF_CMD(name, code, args, ...)                              \
+            if (strcasecmp(str, #name) == 0)                                \
+            {                                                               \
+                position = Read_arg(labels, spu, code, args, file, bin_buf, position); \
+            }                                                               \
+            else
+
+        if (strchr(str,':') == NULL)                                            //print cheres
+        {
+            #include "commands.h"
+
+            /* else */ {
+                spu -> SPU_err |= INCORRECT_COMAND;
+                break;
+            }
+        }
+
+
+        if (spu -> SPU_err != 0)
+        {
+            SPU_DUMP(spu)
+            printf("      |error command on %d str\n", i);
+        }
+        else
+        {
+        #ifdef SPU_DUMP_ON
+            SPU_DUMP(spu)
+            printf("      |now command on %d str\n", i);
+        #endif
+        }
+    }
+    #undef DEF_CMD
+
+    return position;
 }
 
 
 //________________________________________________________________________________________________________________
-                                                                                // sdelay menche define
-
-
+/*
 #define DEF_CMD(name, code, args, ...)                              \
     if (strcasecmp(str, #name) == 0)                                \
     {                                                               \
         switch(num_compil)                                          \
         {                                                           \
         case SECOND_COMPILATION:                                    \
-            position = Read_arg(labels, code, args, file, bin_buf, position, str); \
+            position = Read_arg(labels, spu, code, args, file, bin_buf, position); \
             break;                                                  \
         case FIRST_COMPILATION:                                     \
             for (int i = 0; i < args; i++)                          \
@@ -137,10 +230,10 @@ int check_len_str (FILE* file)
         }                                                           \
     }                                                               \
     else
-
-
+*/
 //________________________________________________________________________________________________________________
 
+/*
 int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compil, FILE* file, int* bin_buf)
 {
     int point = 0;
@@ -149,10 +242,8 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
 
     for (int i = 0; i < Num_rows + 1; i++)
     {
-        //int len_str  = check_len_str(file);
-        //char* str = (char*) calloc(len_str + 1, sizeof(char));
 
-        fscanf(file, "%s", str);                                                //ду хаст  len check
+        fscanf(file, "%s", str);
 
         if (strchr(str,':') != NULL)                                            //print cheres
         {
@@ -162,38 +253,9 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
             }
             continue;
         }
-
-        /*
-        switch (num_compil)
-        {
-        case SECOND_COMPILATION:
-            #undef DEF_CMD
-            #define DEF_CMD(name, code, args, ...)                              \
-                if (strcasecmp(str, #name) == 0)                                \
-                {                                                               \
-                    j = Read_func(labels, code, args, file, bin_buf, j, str);   \
-                }                                                               \
-                else
-            break;
-
-        case FIRST_COMPILATION:
-            #undef DEF_CMD
-            #define DEF_CMD(name, code, args, ...)                              \
-                if (strcasecmp(str, #name) == 0)                                \
-                {                                                               \
-                    for (int k = 0; k < args; k++)                              \
-                    {                                                           \
-                        fscanf(file, "%s", str);                                \
-                    }                                                           \
-                    j = j + args + 1;                                           \
-                }                                                               \
-                else
-            break;
-        }
-        */
         #include "commands.h"
 
-        /* else */ {
+         {
             spu -> SPU_err |= INCORRECT_COMAND;
             break;
         }
@@ -214,5 +276,5 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
 
     return position;
 }
-
+*/
 
