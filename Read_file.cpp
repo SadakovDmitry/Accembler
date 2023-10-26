@@ -122,7 +122,7 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
 }
 
 
-
+/*
 #define DEF_CMD(name, code , args, ...)\
     if(func_num == code)\
     {\
@@ -154,7 +154,42 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
             break;\
         }\
     }
+*/
 
+#define DEF_CMD(name, code, num_args, program)                                                                                                      \
+    if (func_num == (code | 128 | 64))                                                                                                              \
+    {                                                                                                                                               \
+        fprintf(output_file, "%ld\t\t"#name, spu -> bin_buf - start_buf);                                                                           \
+        fprintf(output_file, " [%d]\n", *(spu -> bin_buf + 1));                                                                                     \
+        spu -> bin_buf = spu -> bin_buf + 2;                                                                                                        \
+        continue;                                                                                                                                   \
+    }                                                                                                                                               \
+    if (func_num == (code | 128 | 32))                                                                                                              \
+    {                                                                                                                                               \
+        fprintf(output_file, "%ld\t\t"#name, spu -> bin_buf - start_buf);                                                                           \
+        fprintf(output_file, " [r%cx]\n", (char)((int)simbol_a + *(spu -> bin_buf + 1)));                                                           \
+        spu -> bin_buf = spu -> bin_buf + 2;                                                                                                        \
+        continue;                                                                                                                                   \
+    }                                                                                                                                               \
+    if (func_num == (code | 64))                                                                                                                    \
+    {                                                                                                                                               \
+        fprintf(output_file, "%ld\t\t"#name, spu -> bin_buf - start_buf);                                                                           \
+        fprintf(output_file, " %d\n", *(spu -> bin_buf + 1));                                                                                       \
+        spu -> bin_buf = spu -> bin_buf + 2;                                                                                                        \
+        continue;                                                                                                                                   \
+    }                                                                                                                                               \
+    if (func_num == (code | 32))                                                                                                                    \
+    {                                                                                                                                               \
+        fprintf(output_file, "%ld\t\t"#name, spu -> bin_buf - start_buf);                                                                           \
+        fprintf(output_file, " r%cx\n", (char)((int)simbol_a + *(spu -> bin_buf + 1)));                                                             \
+        spu -> bin_buf = spu -> bin_buf + 2;                                                                                                        \
+        continue;                                                                                                                                   \
+    }                                                                                                                                               \
+    if (func_num == code)                                                                                                                           \
+    {                                                                                                                                               \
+        fprintf(output_file, "%ld\t\t"#name"\n", spu -> bin_buf - start_buf);                                                                       \
+        spu -> bin_buf = spu -> bin_buf + 1;                                                                                                        \
+    }
 
 
 void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu)
@@ -170,7 +205,8 @@ void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu)
     int arg_type = 0;
     int input_func = 0;
     int simbol_a = 'a';
-    char str[5] = "";
+    char str[1000] = "";
+    int* start_buf = spu -> bin_buf;
 
     while(func_num != CMD_HLT)
     {

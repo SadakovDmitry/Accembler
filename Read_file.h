@@ -29,9 +29,10 @@ struct SPU{
 
 enum SPU_ERR : unsigned int
 {
-    ARGS_NULL = 1 << 0,
-    INCORRECT_INPUT = 1 << 1,
-    INCORRECT_COMAND = 1 << 2
+    ARGS_NULL               = 1 << 0,
+    INCORRECT_INPUT         = 1 << 1,
+    INCORRECT_COMAND        = 1 << 2,
+    SQRT_FROM_INCORRECT_NUM = 1 << 3
 };
 
 int Size_of_text(int* Num_rows, FILE* file);
