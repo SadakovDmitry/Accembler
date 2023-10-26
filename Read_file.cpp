@@ -8,9 +8,10 @@
 //#include "enum_commands.h"
 
 
+#define MAKE_COLOUR(colour) printf("\033[%sm%c \033[0m", colour, (char) *(spu -> RAM + j + i * len_of_row));
+//#define MAKE_COLOUR(colour) colour
 
 const int MAX_NUM = 10000;
-
 
 
 
@@ -37,7 +38,6 @@ int Size_of_text(int* Num_rows, FILE* file )
         {
             size_of_file++;
         }
-        //size_of_file++;
 
         if (input == '\n')
         {
@@ -121,41 +121,40 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
     return bin_buf;
 }
 
-
 /*
-#define DEF_CMD(name, code , args, ...)\
-    if(func_num == code)\
-    {\
-        switch(args)\
-        {\
-        case 2:\
-            arg_type = *(spu -> bin_buf + 1);\
-            input_func = *(spu -> bin_buf + 2);\
-            \
-            switch(arg_type)\
-            {\
-            case 1:\
-                fprintf(output_file,"PUSH %d\n", input_func);\
-                break;\
-            case 2:\
-                fprintf(output_file,"PUSH r%cx\n", (char)((int)simbol_a + input_func));\
-                break;\
-            }\
-            spu -> bin_buf = spu -> bin_buf + 3;\
-            break;\
-        case 1:\
-            input_func = *(spu -> bin_buf + 1);\
-            fprintf(output_file,"POP r%cx\n", (char)((int)simbol_a + input_func));\
-            spu -> bin_buf = spu -> bin_buf + 2;\
-            break;\
-        case 0:\
-            fprintf(output_file, #name"\n");\
-            spu -> bin_buf = spu -> bin_buf + 1;\
-            break;\
-        }\
+void Choose_colour(int colour, struct SPU* spu, int i, int j, int len_of_row)
+{
+    switch(colour)
+    {
+    case 29:
+        printf("\033[29m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 30:
+        printf("\033[30m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 31:
+        printf("\033[31m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 32:
+        printf("\033[32m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 33:
+        printf("\033[33m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 34:
+        printf("\033[34m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 35:
+        printf("\033[35m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
+    case 36:
+        printf("\033[36m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
+        break;
     }
+}
 */
 
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #define DEF_CMD(name, code, num_args, program)                                                                                                      \
     if (func_num == (code | 128 | 64))                                                                                                              \
     {                                                                                                                                               \
@@ -190,6 +189,7 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
         fprintf(output_file, "%ld\t\t"#name"\n", spu -> bin_buf - start_buf);                                                                       \
         spu -> bin_buf = spu -> bin_buf + 1;                                                                                                        \
     }
+//---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 
 void Convert_to_cheak_file(struct About_text* ab_text, struct SPU* spu)
@@ -249,13 +249,18 @@ void Print_VRAM(struct SPU* spu, int size_of_RAM)
 
     for (int i = 0; i < num_of_rows; i++)
     {
-        for (int j = 0; j < len_of_row; j = j + 2)
+        for (int j = 1; j < len_of_row; j = j + 2)
         {
-            //"[\033[32m %lf \033[0m]"
+
             //snprintf(colour, strlen(colour), "%d", *(spu -> RAM + j + i * len_of_row + 1));
             //set_colour(*(spu -> RAM + j + i * len_of_row + 1))
             //textcolour(*(spu -> RAM + j + i * len_of_row));
-            printf("%c ", (char) *(spu -> RAM + j + i * len_of_row));
+            int code = *(spu -> RAM + j + i * len_of_row - 1);
+            snprintf(colour, sizeof colour, "%d", code);
+            //printf("colour = %s\n", colour);
+
+            MAKE_COLOUR(colour)
+            //Choose_colour(code, spu, i, j, len_of_row);
         }
         printf("\n");
     }

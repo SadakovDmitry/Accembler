@@ -10,7 +10,7 @@ Circle:
         push rcx
         rem
         push 1
-        je Print:
+        jne Colour:
 
         push 200
         push rcx
@@ -44,8 +44,26 @@ Circle:
         mul
         push 46
         pop [rcx]
-        jb Print:
+        jbe Print:
         push 36
+        pop [rcx]
+
+        push 32
+
+        push rcx
+        push -1
+        add
+        pop rcx
+        pop [rcx]
+        push rcx
+        push 1
+        add
+        pop rcx
+
+        jmp Print:
+
+Colour:
+        push 29
         pop [rcx]
 
 Print:
