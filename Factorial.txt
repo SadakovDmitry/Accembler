@@ -1,0 +1,31 @@
+        jmp main:
+
+Fact:
+        push rcx
+        push rbx
+        mul
+        pop rcx
+        push rbx
+        push 1
+        add
+        pop rbx
+        push rbx
+        push rax
+        jae Contin:
+        ret
+Contin:
+        call Fact:
+        ret
+
+main:
+        in
+        pop rax
+        push 1
+        pop rbx
+        push 1
+        pop rcx
+        call Fact:
+
+        push rcx
+        out
+        hlt

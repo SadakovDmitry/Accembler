@@ -10,66 +10,92 @@
 #include "Assembler_func.h"
 
 
-int Read_func(struct Labels* labels,int code, int args, FILE* file, int* bin_buf, int j, char* str)
+int Read_arg(struct Labels* labels,int code, int num_args, FILE* file, int* bin_buf, int pos, char* str)
 {
     int arg = 0;
-    char arg_str[10] = "";
+    char arg_str[SIZE_STR] = "";
     char simbol_a = 'a';
 
-    switch(args)
+    switch(num_args)
     {
     case 1:
-        *(bin_buf + j) = code;
+        *(bin_buf + pos) = code;
         switch (fscanf(file, "%d", &arg))
         {
         case READ_THE_NUMBER:
-            *(bin_buf + j) += ARG_TYPE_INT;
-            *(bin_buf + j + 1) = arg;
+            pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, arg);
             break;
+
         case READ_THE_STR:
             fscanf(file, "%s", arg_str);
 
             if (strchr(arg_str,':') != NULL)
             {
-                for(int k = 0; k < NUM_OF_LABELS; k++)
-                {
-                    if (!strncmp (labels[k].point_name, arg_str, max(strlen (str), strlen (labels[k].point_name))))
-                    {
-                    *(bin_buf + j + 1) = labels[k].ip;
-                    break;
-                    }
-                }
-                *(bin_buf + j) += ARG_TYPE_INT;
+                int label_val = Find_label(labels, bin_buf + pos, arg_str);
+                pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, label_val);
             }
             else if (strchr(arg_str,'[') != NULL and strchr(arg_str,']') != NULL)
             {
-                *(bin_buf + j) += ARG_TYPE_TO_RAM;
+                *(bin_buf + pos) += ARG_TYPE_TO_RAM;
                 if (arg_str[1] == 'r' && arg_str[3] == 'x' && 'a' <= arg_str[2] && arg_str[2] <= 'd')
                 {
-                    *(bin_buf + j) += ARG_TYPE_STR;
-                    *(bin_buf + j + 1) = (int) (arg_str[2]) - (int) simbol_a;
+                    pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_STR, (int) (arg_str[2]) - (int) simbol_a);
                 }
                 else
                 {
-                    *(bin_buf + j) += ARG_TYPE_INT;
-                    *(bin_buf + j + 1) = atoi(arg_str + 1);
+                    pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_INT, atoi(arg_str + 1));
                 }
             }
             else
             {
-                *(bin_buf + j) += ARG_TYPE_STR;
-                *(bin_buf + j + 1) = (int) (arg_str[1]) - (int) simbol_a;
+                pos = Push_to_bin_buf(bin_buf, pos, ARG_TYPE_STR, (int) (arg_str[1]) - (int) simbol_a);
             }
         }
-        j = j + 2;
         break;
     case 0:
-        *(bin_buf + j) = code;
-        j++;
+        *(bin_buf + pos) = code;
+        pos++;
         break;
     }
-    return j;
+    return pos;
 }
+
+
+int Push_to_bin_buf(int* bin_buf, int position, int val_command, int arg)
+{
+    *(bin_buf + position) += val_command;
+    *(bin_buf + position + 1) = arg;
+
+    return position + 2;
+}
+
+
+int Put_label(struct Labels* labels, char* str, int position, int point)
+{
+    int len = strlen(str);
+    char* point_ip = (char*) calloc(len + 1, sizeof (char));
+    labels[point].point_name = strncpy(point_ip, str, len + 1);
+    labels[point].ip = position;
+    point++;
+
+    return point;
+}
+
+
+int Find_label(struct Labels* labels, int* bin_buf, char* arg_str)
+{
+    int label_val = 0;
+    for(int i = 0; i < NUM_OF_LABELS; i++)
+    {
+        if (!strncmp (labels[i].point_name, arg_str, min(sizeof arg_str, sizeof labels[i].point_name)))
+        {
+            label_val = labels[i].ip;
+            break;
+        }
+    }
+    return label_val;
+}
+
 
 int check_len_str (FILE* file)
 {
@@ -99,46 +125,44 @@ int check_len_str (FILE* file)
         switch(num_compil)                                          \
         {                                                           \
         case SECOND_COMPILATION:                                    \
-            j = Read_func(labels, code, args, file, bin_buf, j, str);\
+            position = Read_arg(labels, code, args, file, bin_buf, position, str); \
             break;                                                  \
         case FIRST_COMPILATION:                                     \
-            for (int k = 0; k < args; k++)                          \
+            for (int i = 0; i < args; i++)                          \
             {                                                       \
                 fscanf(file, "%s", str);                            \
             }                                                       \
-            j = j + args + 1;                                       \
+            position = position + args + 1;                         \
             break;                                                  \
         }                                                           \
     }                                                               \
     else
+
 
 //________________________________________________________________________________________________________________
 
 int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compil, FILE* file, int* bin_buf)
 {
     int point = 0;
-    int j = 0;
-    char str[1000] = "";
+    int position = 0;
+    char str[SIZE_STR] = "";
 
     for (int i = 0; i < Num_rows + 1; i++)
     {
         //int len_str  = check_len_str(file);
         //char* str = (char*) calloc(len_str + 1, sizeof(char));
 
-        fscanf(file, "%s", str);                     //ду хаст  len check
+        fscanf(file, "%s", str);                                                //ду хаст  len check
 
         if (strchr(str,':') != NULL)                                            //print cheres
         {
             if(num_compil == FIRST_COMPILATION)
             {
-            int len = strlen(str);
-            char* point_ip = (char*) calloc(len + 1, sizeof (char));
-            labels[point].point_name = strncpy(point_ip, str, len + 1);
-            labels[point].ip = j;
-            point++;
+            point = Put_label(labels, str, position, point);
             }
             continue;
         }
+
         /*
         switch (num_compil)
         {
@@ -188,7 +212,7 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
         }
     }
 
-    return j;
+    return position;
 }
 
 
