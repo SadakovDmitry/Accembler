@@ -1,0 +1,74 @@
+jmp main:
+
+Find_F:
+    push 107
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    push 120
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    mul
+    out
+    jmp Stop:
+
+Find_x:
+    push 107
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    push 70
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    div
+    out
+    jmp Stop:
+
+Find_k:
+    push 120
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    push 70
+    outc
+    push 32
+    outc
+    push 61
+    outc
+    in
+    div
+    out
+    jmp Stop:
+
+main:
+    in
+    pop rax
+    push rax
+    push 1
+    push rax
+    push 2
+    push rax
+    push 3
+    je Find_k:
+    je Find_x:
+    je Find_F:
+
+Stop:
+    hlt
