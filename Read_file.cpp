@@ -191,7 +191,7 @@ void Print_RAM(struct SPU* spu, int size_of_RAM)
 {
     FILE* RAM_txt = fopen("RAM.txt", "w");
 
-    int len_of_row = 200;
+    int len_of_row = LEN_STR_RAM;
     int num_of_rows = (int) size_of_RAM / len_of_row;
 
     for (int i = 0; i < num_of_rows; i++)
@@ -199,10 +199,8 @@ void Print_RAM(struct SPU* spu, int size_of_RAM)
         for (int j = 0; j < len_of_row; j++)
         {
             fprintf(RAM_txt, "%4d ",*(spu -> RAM + j + i * len_of_row));
-            //printf("%4d ",*(spu -> RAM + j + i * len_of_row));
         }
         fprintf(RAM_txt, "\n");
-        //printf("\n");
     }
     fclose(RAM_txt);
 }
@@ -215,31 +213,33 @@ void Print_VRAM(struct SPU* spu, int size_of_RAM)
 
     image.loadFromFile("image1.jpeg");
 
-    int len_of_row = 200;
+    int len_of_row = LEN_STR_RAM;
     int num_of_rows = (int) size_of_RAM / len_of_row;
-    char colour[10] = "";
+    char color[10] = "";
 
     for (int i = 0; i < num_of_rows; i++)
     {
-        for (int j = 1; j < len_of_row; j = j + 2)
+        for (int j = 3; j < len_of_row; j = j + 4)
         {
-            int code = *(spu -> RAM + j + i * len_of_row - 1);
-            snprintf(colour, sizeof colour, "%d", code);
+            int code = *(spu -> RAM + j + i * len_of_row - 1) - 224;
+            snprintf(color, sizeof color, "%d", code);
+            printf("\033[%sm%c \033[0m", color, (char) *(spu -> RAM + j + i * len_of_row));
 
-            MAKE_COLOUR(colour)
-            if (*(spu -> RAM + j + i * len_of_row) == 48)
+            int color_r = *(spu -> RAM + j + i * len_of_row - 3);
+            int color_g = *(spu -> RAM + j + i * len_of_row - 2);
+            int color_b = *(spu -> RAM + j + i * len_of_row - 1);
+
+            for (int y = i * 10; y < i * 10 + 10; y++)
             {
-                for (int y = i * 10; y < i * 10 + 10; y++)
+                for(int x = (j - 1)*5/2; x < (j - 1)*5/2 + 10; x++)
                 {
-                    for(int x = (j - 1)*5; x < (j - 1)*5 + 10; x++)
-                    {
-                        image.setPixel(x, y, sf::Color(1, 100, 250, 55));
-                    }
+                    image.setPixel(x, y, sf::Color(color_r, color_g, color_b, 250));
                 }
             }
         }
         printf("\n");
     }
+
     image.saveToFile("image1.jpeg");
 }
 

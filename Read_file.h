@@ -36,6 +36,10 @@ enum SPU_ERR : unsigned int
     SQRT_FROM_INCORRECT_NUM = 1 << 3
 };
 
+
+const int LEN_STR_RAM = 400;
+
+
 int Size_of_text(int* Num_rows, FILE* file);
 struct About_str* Input_text (int Num_rows, char* buffer, FILE* file);
 void Make_bin_file(struct About_text* ab_text, struct About_str* ab_str);

@@ -1,4 +1,4 @@
-        push 5100
+        push 20200
         in
         pop rbx
         pop rax
@@ -6,18 +6,18 @@
         pop rcx
 
 Circle:
-        push 2
+        push 4
         push rcx
         rem
-        push 1
+        push 3
         jne Colour:
 
-        push 200
+        push 400
         push rcx
         div
         push 50
         sub
-        push 200
+        push 400
         push rcx
         div
         push 50
@@ -25,14 +25,14 @@ Circle:
         mul
 
         push 100
-        push 2
+        push 4
         push rcx
         div
         rem
         push 50
         sub
         push 100
-        push 2
+        push 4
         push rcx
         div
         rem
@@ -52,22 +52,29 @@ Circle:
         jmp Colour_cir:
 
 Colour_cir:
-        push 31
+        push 255
+        Call Min_1:
 
-        push rcx
-        push -1
-        add
-        pop rcx
-        pop [rcx]
-        push rcx
         push 1
+        Call Min_1:
+
+        push 255
+        Call Min_1:
+
+        push rcx
+        push 3
         add
         pop rcx
-
         jmp Print:
 
 Colour:
-        push 29
+        push 255
+        call Plus_1:
+
+        push 255
+        call Plus_1:
+
+        push 255
         pop [rcx]
 
 Print:
@@ -76,8 +83,24 @@ Print:
         add
         pop rcx
 
-        push 20000
+        push 40000
         push rcx
         jb Circle:
         draw
         hlt
+
+Min_1:
+        push rcx
+        push -1
+        add
+        pop rcx
+        pop [rcx]
+        ret
+
+Plus_1:
+        pop [rcx]
+        push rcx
+        push 1
+        add
+        pop rcx
+        ret
