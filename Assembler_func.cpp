@@ -8,6 +8,7 @@
 #include "Read_file.h"
 #include "SPU_func.h"
 #include "Assembler_func.h"
+#include "Work_SFML.h"
 
 
 int Read_arg(struct Labels* labels, struct SPU* spu, int code, int num_args, FILE* file, int* bin_buf, int pos)
@@ -138,7 +139,7 @@ void First_compil(struct Labels* labels, int Num_rows, FILE* file)
 
         fscanf(file, "%s", str);
 
-        if (strchr(str,':') != NULL)                                            //print cheres
+        if (strchr(str,':') != NULL)
         {
             point = Put_label(labels, str, position, point);
             continue;
@@ -173,14 +174,15 @@ int Second_compil(struct Labels* labels,struct SPU* spu, int Num_rows, FILE* fil
 
         fscanf(file, "%s", str);
 
-        #define DEF_CMD(name, code, args, ...)                              \
-            if (strcasecmp(str, #name) == 0)                                \
-            {                                                               \
-                position = Read_arg(labels, spu, code, args, file, bin_buf, position); \
-            }                                                               \
+        #define DEF_CMD(name, code, args, ...)                                          \
+            if (strcasecmp(str, #name) == 0)                                            \
+            {                                                                           \
+                position = Read_arg(labels, spu, code, args, file, bin_buf, position);  \
+            }                                                                           \
             else
 
-        if (strchr(str,':') == NULL)                                            //print cheres
+        if (strchr(str,':') == NULL)
+
         {
             #include "commands.h"
 
@@ -208,6 +210,7 @@ int Second_compil(struct Labels* labels,struct SPU* spu, int Num_rows, FILE* fil
 
     return position;
 }
+
 
 
 //________________________________________________________________________________________________________________
@@ -245,7 +248,7 @@ int Compilate(struct Labels* labels,struct SPU* spu, int Num_rows, int num_compi
 
         fscanf(file, "%s", str);
 
-        if (strchr(str,':') != NULL)                                            //print cheres
+        if (strchr(str,':') != NULL)
         {
             if(num_compil == FIRST_COMPILATION)
             {

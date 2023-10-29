@@ -2,8 +2,7 @@
 #define DO_POP Stack_Pop(stk, &val, canary)
 #define DO_POP_STK_CALLS Stack_Pop(stk_calls, &val, canary)
 #define DO_PUSH_STK_CALLS(val) Stack_Push(stk_calls, val, canary);
-//#define DO_PUSH_TO_RAM(val)
-//    input*(spu -> RAM + val)
+
 
 #define DO_JMP(name_jmp, code_jmp, args_jmp, symbol)        \
     DEF_CMD (name_jmp, code_jmp, args_jmp,                  \
@@ -174,16 +173,13 @@ DEF_CMD(JMP, 13, 1,
 DEF_CMD(RET, 21, 0,
     {
         Elem_t val = DO_POP_STK_CALLS;
-        //printf("ret = %d", val);
         spu -> bin_buf = start_buf + val - 1;
     })
 
 DEF_CMD(CALL, 22, 1,
     {
         Elem_t val = *(spu -> bin_buf + 1);
-        //Elem_t val = spu -> bin_buf - start_buf + 2;
         DO_PUSH_STK_CALLS(spu -> bin_buf - start_buf + 2)
-        //printf("call = %ld\n", spu -> bin_buf - start_buf + 2);
         spu -> bin_buf = start_buf + val - 2;
     })
 
@@ -200,8 +196,22 @@ DEF_CMD(OUTC, 24, 0,
         printf("%c", (char) Ret_val);
     })
 
-DEF_CMD (REM, 25, 0,
+DEF_CMD(REM, 25, 0,
     {
-    Elem_t val = 0;
-    DO_PUSH(DO_POP % (DO_POP / accuracy))
+        Elem_t val = 0;
+        DO_PUSH(DO_POP % (DO_POP / accuracy))
     })
+
+DEF_CMD(DRAW, 26, 0,
+    {
+        Print_VRAM(spu, SIZE_OF_RAM);
+    })
+
+DEF_CMD(SET_PIXEL, 27, 0,
+    {
+        Elem_t val = 0;
+        Elem_t val1 = DO_POP;
+        Elem_t val2 = DO_POP;
+        SetBigPixel(val1, val2);
+    })
+

@@ -24,6 +24,7 @@ struct SPU{
     int* bin_buf;
     Elem_t* args;
     unsigned int SPU_err;
+    Labels* label;
 };
 
 

@@ -2,14 +2,14 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
-//#include <conio.h>
 #include <sys/stat.h>
 #include "Read_file.h"
-//#include "enum_commands.h"
+#include "Work_SFML.h"
+#include <SFML/Graphics.hpp>
 
 
 #define MAKE_COLOUR(colour) printf("\033[%sm%c \033[0m", colour, (char) *(spu -> RAM + j + i * len_of_row));
-//#define MAKE_COLOUR(colour) colour
+
 
 const int MAX_NUM = 10000;
 
@@ -121,38 +121,6 @@ int* Work_with_bin_file(struct About_text* ab_text, FILE* file)
     return bin_buf;
 }
 
-/*
-void Choose_colour(int colour, struct SPU* spu, int i, int j, int len_of_row)
-{
-    switch(colour)
-    {
-    case 29:
-        printf("\033[29m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 30:
-        printf("\033[30m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 31:
-        printf("\033[31m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 32:
-        printf("\033[32m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 33:
-        printf("\033[33m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 34:
-        printf("\033[34m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 35:
-        printf("\033[35m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    case 36:
-        printf("\033[36m%c \033[0m", (char) *(spu -> RAM + j + i * len_of_row));
-        break;
-    }
-}
-*/
 
 //---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 #define DEF_CMD(name, code, num_args, program)                                                                                                      \
@@ -243,6 +211,10 @@ void Print_RAM(struct SPU* spu, int size_of_RAM)
 
 void Print_VRAM(struct SPU* spu, int size_of_RAM)
 {
+    sf::Image image;
+
+    image.loadFromFile("image1.jpeg");
+
     int len_of_row = 200;
     int num_of_rows = (int) size_of_RAM / len_of_row;
     char colour[10] = "";
@@ -251,19 +223,24 @@ void Print_VRAM(struct SPU* spu, int size_of_RAM)
     {
         for (int j = 1; j < len_of_row; j = j + 2)
         {
-
-            //snprintf(colour, strlen(colour), "%d", *(spu -> RAM + j + i * len_of_row + 1));
-            //set_colour(*(spu -> RAM + j + i * len_of_row + 1))
-            //textcolour(*(spu -> RAM + j + i * len_of_row));
             int code = *(spu -> RAM + j + i * len_of_row - 1);
             snprintf(colour, sizeof colour, "%d", code);
-            //printf("colour = %s\n", colour);
 
             MAKE_COLOUR(colour)
-            //Choose_colour(code, spu, i, j, len_of_row);
+            if (*(spu -> RAM + j + i * len_of_row) == 48)
+            {
+                for (int y = i * 10; y < i * 10 + 10; y++)
+                {
+                    for(int x = (j - 1)*5; x < (j - 1)*5 + 10; x++)
+                    {
+                        image.setPixel(x, y, sf::Color(1, 100, 250, 55));
+                    }
+                }
+            }
         }
         printf("\n");
     }
+    image.saveToFile("image1.jpeg");
 }
 
 
